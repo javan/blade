@@ -1,0 +1,32 @@
+#!/usr/bin/env ruby
+
+require "optparse"
+
+
+options = {}
+
+OptionParser.new do |opts|
+  opts.banner = "Blade Runner"
+
+  opts.on("--file-paths x,y,z", Array, "File paths to watch for changes") do |paths|
+    options[:file_paths] = paths
+  end
+
+  opts.on("--asset-paths x,y,z", Array, "Sprocket asset paths") do |paths|
+    options[:asset_paths] = paths
+  end
+
+  opts.on("--test-assets x,y,z", Array, "Test assets") do |paths|
+    options[:test_assets] = paths
+  end
+end.parse!
+
+require "blade_runner"
+require "yaml"
+
+filename = ".blade.yml"
+if File.exists?(filename)
+  options = YAML.load_file(filename)
+end
+
+BladeRunner.new(options).start
