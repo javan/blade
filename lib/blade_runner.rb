@@ -1,11 +1,11 @@
 require "pathname"
+require "ostruct"
 
 require "blade_runner/version"
 require "blade_runner/base"
 require "blade_runner/server"
 require "blade_runner/browser_launcher"
 require "blade_runner/file_watcher"
-require "blade_runner/tap_stream"
 require "blade_runner/console"
 
 class BladeRunner

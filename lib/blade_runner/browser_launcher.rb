@@ -4,6 +4,7 @@ class BladeRunner
   class BrowserLauncher < Base
     def start
       browsers.each do |name, args|
+        args = args + [url(name)]
         process = ChildProcess.build(*args)
         process.start
       end
@@ -15,12 +16,10 @@ class BladeRunner
           "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
           "--user-data-dir=#{runner.tmp_path}",
           "--no-default-browser-check",
-          "--no-first-run",
-          url
+          "--no-first-run"
         ],
         "Firefox" => [
-          "/Applications/Firefox.app/Contents/MacOS/firefox",
-          url
+          "/Applications/Firefox.app/Contents/MacOS/firefox"
         ],
         #"Safari" => [
         #  "/Applications/Safari.app/Contents/MacOS/Safari",
@@ -29,8 +28,8 @@ class BladeRunner
       }
     end
 
-    def url
-      "http://localhost:#{runner.config.port}/test.html"
+    def url(browser)
+      "http://localhost:#{runner.config.port}/test.html?browser=#{browser}"
     end
   end
 end

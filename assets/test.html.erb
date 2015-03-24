@@ -6,7 +6,7 @@
   <link rel="stylesheet" type="text/css" href="qunit/qunit.css">
   <script src="http://localhost:<%= runner.config.port %>/faye/client.js"></script>
   <script src="qunit/qunit.js"></script>
-  <script src="blade.js"></script>
+  <script src="blade.js?5"></script>
   <% runner.config.test_scripts.each do |script| %>
     <script src="<%= script %>"></script>
   <% end %>

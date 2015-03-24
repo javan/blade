@@ -3,10 +3,10 @@ client = new Faye.Client fayeURL
 channel = "/tests"
 
 subscribe = (callback) ->
-  client.subscribe(channel, callback)
+  client.subscribe("/commands", callback)
 
 publish = (event, data = {}) ->
-  data.browser = window.navigator.userAgent
+  data.browser = getBrowserName()
   data.event = event
   client.publish(channel, data)
 
@@ -31,3 +31,7 @@ subscribe ({command} = {}) ->
   switch command
     when "start"
       window.location.reload()
+
+
+getBrowserName = ->
+  location.search.match(/browser=(\w+)/)?[1]

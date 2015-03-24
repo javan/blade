@@ -4,64 +4,88 @@ require "curses"
 class BladeRunner
   class Console < Base
     def start
-      @top = 1
-      @height = 12
-      @window = screen
-
       run
-    end
-
-    def screen
-      Curses.init_screen
-      Curses.refresh
-      Curses.stdscr
     end
 
     def run
       EM.run do
+        init_screen
+        init_windows
+
+        flash("Starting...")
+
         subscribe("/tests") do |details|
           process_test_result(details)
         end
 
         subscribe("/filewatcher") do
+          flash("Restarting...")
           publish("/commands", command: "start")
         end
       end
     end
 
     private
+      def init_screen
+        Curses.init_screen
+        Curses.refresh
+        @screen = Curses.stdscr
+      end
+
+      def init_windows
+        @windows = {}
+        @y = 0
+        @x = 1
+        @height = 12
+
+        @windows["console"] = @screen.subwin(2, 0, @y, @x)
+        @y += 2
+
+        runner.browser_launcher.browsers.keys.each do |browser|
+          @screen.setpos(@y, 1)
+          @y += 1
+          @screen.addstr(browser + "\n")
+
+          subwin = @screen.subwin(@height, 0, @y, @x)
+          @y += @height + 1
+          subwin.scrollok(true)
+          @windows[browser] = subwin
+        end
+
+        @screen.refresh
+      end
+
       def process_test_result(details)
         details = OpenStruct.new(details)
-        tap = TapStream.for(details.browser)
+        window = @windows[details.browser]
 
         case details.event
         when "begin"
-          tap.plan details.total
-          tap.comment "Broswer: #{details.browser}"
-          consume_tap_stream(tap)
+          window.addstr "1..#{details.total}\n"
+          window.addstr "# Broswer: #{details.browser}\n"
         when "result"
           if details.result
-            tap.pass details.number, details.name
+            window.addstr "ok #{details.number} #{details.name}\n"
           else
-            tap.fail details.number, details.name
+            window.addstr "ok #{details.number} #{details.name}\n"
           end
         when "end"
-          tap.comment "Test completed in #{details.runtime} milliseconds."
-          tap.comment "#{details.passed} assertions of #{details.total} passed, #{details.failed} failed."
-          tap.done
+          window.addstr "# Test completed in #{details.runtime} milliseconds.\n"
+          window.addstr "# #{details.passed} assertions of #{details.total} passed, #{details.failed} failed.\n"
         end
+
+        window.refresh
       end
 
-      def consume_tap_stream(stream)
-        EM.defer do
-          window = @window.subwin(@height, 0, @top, 1)
-          @top += @height + 1
-          window.scrollok(true)
-          while line = stream.gets
-            window.addstr(line)
-            window.refresh
-          end
-          stream.close
+      def flash(message)
+        window = @windows["console"]
+        window.clear
+        window.addstr(message)
+        window.refresh
+
+        EM.add_timer(2) do
+          window.clear
+          window.refresh
         end
       end
   end
