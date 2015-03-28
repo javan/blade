@@ -36,20 +36,20 @@ class BladeRunner
         @windows = {}
         @y = 0
         @x = 1
-        @height = 12
+        @height = 6
 
         @windows["console"] = @screen.subwin(2, 0, @y, @x)
         @y += 2
 
-        runner.browser_launcher.browsers.keys.each do |browser|
+        runner.browsers.each do |browser|
           @screen.setpos(@y, 1)
           @y += 1
-          @screen.addstr(browser + "\n")
+          @screen.addstr(browser.name + "\n")
 
           subwin = @screen.subwin(@height, 0, @y, @x)
-          @y += @height + 1
+          @y += @height
           subwin.scrollok(true)
-          @windows[browser] = subwin
+          @windows[browser.name] = subwin
         end
 
         @screen.refresh

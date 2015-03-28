@@ -6,10 +6,19 @@ subscribe = (callback) ->
   client.subscribe("/commands", callback)
 
 publish = (event, data = {}) ->
-  data.browser = getBrowserName()
+  data.browser = getParams().browser
   data.event = event
   client.publish(channel, data)
 
+getParams = ->
+  query = location.search.split("?")
+  query = query[query.length - 1]
+
+  params = {}
+  for pair in query.split("&")
+    [key, value] = pair.split("=")
+    params[decodeURIComponent(key)] = decodeURIComponent(value)
+  params
 
 testNumber = null
 
@@ -31,7 +40,3 @@ subscribe ({command} = {}) ->
   switch command
     when "start"
       window.location.reload()
-
-
-getBrowserName = ->
-  location.search.match(/browser=(\w+)/)?[1]

@@ -4,7 +4,7 @@ require "ostruct"
 require "blade_runner/version"
 require "blade_runner/base"
 require "blade_runner/server"
-require "blade_runner/browser_launcher"
+require "blade_runner/browsers"
 require "blade_runner/file_watcher"
 require "blade_runner/console"
 
@@ -23,7 +23,7 @@ class BladeRunner
   def start
     clean
     server.start
-    browser_launcher.start
+    browsers.each(&:start)
     file_watcher.start
     console.start
   end
@@ -48,8 +48,8 @@ class BladeRunner
     @client ||= Faye::Client.new("http://localhost:#{config.port}/faye")
   end
 
-  def browser_launcher
-    @browser_launcher ||= BrowserLauncher.new(self)
+  def browsers
+    @browsers ||= descendants(Browser).map { |c| c.new(self) }.select(&:supported?)
   end
 
   def file_watcher
@@ -64,5 +64,9 @@ class BladeRunner
     def clean
       FileUtils.rm_rf(tmp_path)
       FileUtils.mkdir_p(tmp_path)
+    end
+
+    def descendants(klass)
+      ObjectSpace.each_object(Class).select { |c| c < klass }
     end
 end
