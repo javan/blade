@@ -57,7 +57,7 @@ class BladeRunner
         @tab_x = @x
         @y += @tab_height
 
-        results_height = 20
+        results_height = @screen.maxy - @y
         @results_window = @screen.subwin(results_height, 0, @y, @x)
         @results_window.scrollok(true)
         @y += results_height
