@@ -9,5 +9,13 @@ class BladeRunner
     def initialize(runner)
       @runner = runner
     end
+
+    def start
+      raise NotImplementedError
+    end
+
+    def stop
+      raise NotImplementedError
+    end
   end
 end

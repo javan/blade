@@ -9,6 +9,11 @@ class BladeRunner
       run
     end
 
+    def stop
+      close_screen
+      EM.stop_event_loop
+    end
+
     def run
       EM.run do
         start_screen

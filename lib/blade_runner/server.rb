@@ -4,12 +4,17 @@ require "sprockets"
 class BladeRunner
   class Server < Base
     def start
-      fork do
+      @pid = fork do
         STDIN.reopen("/dev/null")
         STDOUT.reopen("/dev/null", "a")
         STDERR.reopen("/dev/null", "a")
         Rack::Server.start(app: app, Port: runner.config.port, server: "puma")
       end
+    end
+
+    def stop
+      Process.kill("INT", @pid)
+      Process.wait(@pid)
     end
 
     private

@@ -20,12 +20,23 @@ class BladeRunner
     config.watch_files = Array(config.watch_files)
   end
 
+  SIGNALS = %w( INT )
+
   def start
-    clean
-    server.start
-    browsers.each(&:start)
-    file_watcher.start
-    console.start
+    SIGNALS.each do |signal|
+      trap(signal) { stop }
+    end
+
+    @children = [server, browsers, file_watcher, console].flatten
+    @children.each(&:start)
+  end
+
+  def stop
+    return if @stopping
+    @stopping = true
+    @children.each { |c| c.stop rescue nil }
+  ensure
+    exit
   end
 
   def lib_path

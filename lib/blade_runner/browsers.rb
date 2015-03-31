@@ -12,8 +12,12 @@ class BladeRunner
     end
 
     def start
-      process = ChildProcess.build(*command_with_arguments)
-      process.start
+      @process = ChildProcess.build(*command_with_arguments)
+      @process.start
+    end
+
+    def stop
+      @process.stop
     end
 
     def arguments
