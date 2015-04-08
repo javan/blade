@@ -1,8 +1,16 @@
+require "blade_runner/test_results"
 require "childprocess"
 require "uri"
 
 class BladeRunner
   class Browser < Base
+    attr_reader :test_results
+
+    def initialize(runner)
+      super
+      @test_results = TestResults.new(self)
+    end
+
     def name
       raise NotImplementedError
     end

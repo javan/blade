@@ -1,3 +1,4 @@
+require "eventmachine"
 require "pathname"
 require "ostruct"
 
@@ -27,14 +28,17 @@ class BladeRunner
       trap(signal) { stop }
     end
 
-    @children = [server, browsers, file_watcher, console].flatten
-    @children.each(&:start)
+    EM.run do
+      @children = [server, browsers, file_watcher, console].flatten
+      @children.each(&:start)
+    end
   end
 
   def stop
     return if @stopping
     @stopping = true
     @children.each { |c| c.stop rescue nil }
+    EM.stop_event_loop
   ensure
     exit
   end
