@@ -1,4 +1,3 @@
-require "eventmachine"
 require "curses"
 
 class BladeRunner
@@ -11,66 +10,24 @@ class BladeRunner
 
     def stop
       close_screen
-      EM.stop_event_loop
     end
 
     def run
-      EM.run do
-        start_screen
-        init_windows
-        init_tabs
-        handle_keys
+      start_screen
+      init_windows
+      init_tabs
+      handle_keys
 
-        subscribe("/tests") do |details|
-          process_test_result(details)
-        end
+      subscribe("/filewatcher") do
+        publish("/commands", command: "start")
+      end
 
-        subscribe("/filewatcher") do
-          publish("/commands", command: "start")
-        end
+      subscribe("/tests") do |details|
+        draw_tab_status_dots
       end
     end
 
     private
-      def process_test_result(details)
-        details = OpenStruct.new(details)
-        tab = find_or_create_tab(details.browser)
-        original_status = tab.status
-
-        case details.event
-        when "begin"
-          tab.status = :started
-          tab.failures = []
-          tab.lines << "1..#{details.total}"
-          tab.lines << "# Broswer: #{details.browser}"
-        when "result"
-          if details.result
-            tab.lines << "ok #{details.number} #{details.name}"
-          else
-            line = "not ok #{details.number} #{details.name}"
-            tab.failures << line
-            tab.lines << line
-          end
-        when "end"
-          tab.status = :finished
-          tab.lines << "# #{details.browser} tests completed in #{details.runtime} milliseconds."
-          tab.lines << "# #{details.passed} assertions of #{details.total} passed, #{details.failed} failed."
-        end
-
-        if tab.status != original_status
-          draw_tabs
-        end
-
-        if tab.active
-          if tab.status == :finished
-            display_tab(tab)
-          else
-            @results_window.addstr tab.lines.last + "\n"
-            @results_window.refresh
-          end
-        end
-      end
-
       def start_screen
         init_screen
         start_color
@@ -112,7 +69,9 @@ class BladeRunner
 
       def init_tabs
         @tabs = []
-        runner.browsers.map(&:name).each { |n| create_tab(n) }
+        runner.browsers.each do |browser|
+          @tabs << OpenStruct.new(browser: browser)
+        end
         display_tab(@tabs.first) if @tabs.first
       end
 
@@ -136,26 +95,6 @@ class BladeRunner
         display_tab(tab)
       end
 
-      def find_or_create_tab(name)
-        if tab = find_tab(name)
-          tab
-        else
-          tab = create_tab(name)
-          draw_tabs
-          tab
-        end
-      end
-
-      def find_tab(name)
-        @tabs.detect { |t| t.name == name }
-      end
-
-      def create_tab(name)
-        tab = OpenStruct.new(name: name, status: :pending, lines: [], failures: [])
-        @tabs.push(tab)
-        tab
-      end
-
       def draw_tabs
         # Horizontal line
         @screen.setpos(@tab_y + 2, 0)
@@ -169,22 +108,24 @@ class BladeRunner
             tab.window.close
           end
 
-          width = tab.name.length + 6
+          width = tab.browser.name.length + 6
           window = @screen.subwin(@tab_height, width, @tab_y, tab_x)
 
           if tab.active
-            inner_width = tab.name.length + 4
+            inner_width = tab.browser.name.length + 4
             window.addstr "╔" + "═" * inner_width + "╗"
             window.addstr "║"
-            window.addstr(" ")
-            add_tab_name(window, tab)
+            window.addstr("   ")
+            window.attron(A_BOLD)
+            window.addstr tab.browser.name
+            window.attroff(A_BOLD)
             window.addstr(" ")
             window.addstr                           "║"
             window.addstr "╝" + " " * inner_width + "╚"
           else
             window.addstr "\n"
-            window.addstr "  "
-            add_tab_name(window, tab)
+            window.addstr "    "
+            window.addstr tab.browser.name
             window.addstr "  "
             window.addstr "═" * width
           end
@@ -193,26 +134,37 @@ class BladeRunner
           tab.window = window
           tab_x += width
         end
+
+        draw_tab_status_dots
       end
 
-      def add_tab_name(window, tab)
-        color = if tab.failures.any?
-          @red
-        else
-          if tab.status == :started
-            @yellow
-          elsif tab.status == :finished
-            @green
+      def draw_tab_status_dots
+        @tabs.each do |tab|
+          if tab.status_window
+            tab.status_window.clear
+            tab.status_window.close
           end
-        end
 
-        window.attron(A_BOLD) if tab.active
-        window.attron(color) if color
-        bullet = tab.status == :pending ? "○" : "●"
-        window.addstr(bullet)
-        window.attroff(color) if color
-        window.addstr(" #{tab.name}")
-        window.attroff(A_BOLD) if tab.active
+          x = tab.window.begx + 2
+          y = tab.window.begy + 1
+          tab.status_window = Window.new(1,1,y,x)
+
+          color = if tab.browser.test_results.failures.any?
+            @red
+          else
+            if tab.browser.test_results.status == "running"
+              @yellow
+            elsif tab.browser.test_results.status == "finished"
+              @green
+            end
+          end
+
+          bullet = tab.browser.test_results.status == "pending" ? "○" : "●"
+
+          tab.status_window.attrset(color) if color
+          tab.status_window.addstr(bullet)
+          tab.status_window.refresh
+        end
       end
 
       def display_tab(tab)
@@ -221,7 +173,7 @@ class BladeRunner
         draw_tabs
 
         @results_window.clear
-        @results_window.addstr(tab.lines.join("\n"))
+        @results_window.addstr(tab.browser.test_results.to_s)
         @results_window.refresh
       end
   end
