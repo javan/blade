@@ -13,14 +13,25 @@ require "blade_runner/ci"
 class BladeRunner
   attr_reader :config
 
+  def self.config
+    @@config
+  end
+
   def initialize(options = {})
-    @config = OpenStruct.new(options)
+    @config = @@config = OpenStruct.new(options)
 
     config.port ||= 9876
     config.mode ||= :console
     config.asset_paths = Array(config.asset_paths)
     config.test_scripts = Array(config.test_scripts)
     config.watch_files = Array(config.watch_files)
+
+    plugins = config.plugins || {}
+    config.plugins = OpenStruct.new
+    plugins.each do |name, plugin_config|
+      config.plugins[name] = OpenStruct.new(plugin_config)
+      require "blade_runner/#{name}"
+    end
   end
 
   SIGNALS = %w( INT )
