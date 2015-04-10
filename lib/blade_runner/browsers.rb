@@ -36,7 +36,7 @@ class BladeRunner
     end
 
     def test_url
-      URI.escape("http://localhost:#{runner.config.port}/test.html?browser=#{name}")
+      URI.escape("http://localhost:#{runner.config.port}/test.html?browser=#{name}&time=#{Time.now.utc}")
     end
 
     def supported?

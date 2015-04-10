@@ -8,4 +8,6 @@ if File.exists?(filename)
   options = YAML.load_file(filename)
 end
 
+options[:mode] = :ci
+
 BladeRunner.new(options).start

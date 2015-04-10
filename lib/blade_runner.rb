@@ -8,6 +8,7 @@ require "blade_runner/server"
 require "blade_runner/browsers"
 require "blade_runner/file_watcher"
 require "blade_runner/console"
+require "blade_runner/ci"
 
 class BladeRunner
   attr_reader :config
@@ -16,6 +17,7 @@ class BladeRunner
     @config = OpenStruct.new(options)
 
     config.port ||= 9876
+    config.mode ||= :console
     config.asset_paths = Array(config.asset_paths)
     config.test_scripts = Array(config.test_scripts)
     config.watch_files = Array(config.watch_files)
@@ -28,8 +30,15 @@ class BladeRunner
       trap(signal) { stop }
     end
 
+    at_exit do
+      stop
+      exit $!.status if $!.is_a?(SystemExit)
+    end
+
+    clean
+
     EM.run do
-      @children = [server, browsers, file_watcher, console].flatten
+      @children = [server, browsers, runner_for_mode].flatten
       @children.each(&:start)
     end
   end
@@ -39,8 +48,8 @@ class BladeRunner
     @stopping = true
     @children.each { |c| c.stop rescue nil }
     EM.stop_event_loop
-  ensure
-    exit
+  rescue
+    nil
   end
 
   def lib_path
@@ -75,7 +84,19 @@ class BladeRunner
     @console ||= Console.new(self)
   end
 
+  def ci
+    @ci ||= CI.new(self)
+  end
+
   private
+    ALLOWED_MODES = [:ci, :console]
+
+    def runner_for_mode
+      if ALLOWED_MODES.include?(config.mode)
+        send(config.mode)
+      end
+    end
+
     def clean
       FileUtils.rm_rf(tmp_path)
       FileUtils.mkdir_p(tmp_path)
