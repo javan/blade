@@ -8,7 +8,7 @@ class BladeRunner
         STDIN.reopen("/dev/null")
         STDOUT.reopen("/dev/null", "a")
         STDERR.reopen("/dev/null", "a")
-        Rack::Server.start(app: app, Port: runner.config.port, server: "puma")
+        Rack::Server.start(app: app, Port: runner.config.port, server: "puma", quiet: true, environment: "development")
       end
     end
 
