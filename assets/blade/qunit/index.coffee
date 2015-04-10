@@ -3,37 +3,24 @@
 QUnit.config.hidepassed = true
 QUnit.config.testTimeout = 5000
 
-log = []
-testName = null
+QUnit.begin (suiteDetails) ->
+  publish("begin", total: suiteDetails.totalTests)
 
-QUnit.begin (details) ->
-  publish("begin", total: details.totalTests)
+failedAssertions = []
 
 QUnit.testStart (testDetails) ->
-  QUnit.log (details) ->
-    if !details.result
-      details.name = testDetails.name
-      log.push details
+  failedAssertions = []
 
-QUnit.testDone (details) ->
-  result = details.failed is 0
-  name = "#{details.module}: #{details.name}"
-  publish("result", {result, name})
+QUnit.log (assertionDetails) ->
+  unless assertionDetails.result
+    failedAssertions.push(assertionDetails)
 
-QUnit.done (test_results) ->
-  tests = []
-  i = 0
-  len = log.length
-  while i < len
-    details = log[i]
-    tests.push
-      name: details.name
-      result: details.result
-      expected: details.expected
-      actual: details.actual
-      source: details.source
-    i++
-  test_results.tests = tests
-  window.global_test_results = test_results
+QUnit.testDone (testDetails) ->
+  result = testDetails.failed is 0
+  name = "#{testDetails.module}: #{testDetails.name}"
+  message = failedAssertions if failedAssertions.length
+  publish("result", {result, name, message})
 
-  publish("end", test_results)
+QUnit.done (suiteDetails) ->
+  window.global_test_results = suiteDetails
+  publish("end", suiteDetails)

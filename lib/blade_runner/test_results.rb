@@ -1,3 +1,5 @@
+require "pp"
+
 class BladeRunner
   class TestResults < Base
     attr_reader :browser, :status, :results, :passes, :failures
@@ -70,7 +72,13 @@ class BladeRunner
       end
 
       def to_tap(number = nil)
-        ["ok", number, @name].compact.join(" ")
+        ["ok", number, @name, message].compact.join(" ")
+      end
+
+      def message
+        unless @message.nil?
+          "\n" + PP.pp(@message, "").gsub(/^/, "# ").chomp
+        end
       end
     end
 
