@@ -84,7 +84,7 @@ class BladeRunner
   end
 
   def browsers
-    @browsers ||= descendants(Browser).map { |c| c.new(self) }.select(&:supported?)
+    @browsers ||= Browser.subclasses.map { |c| c.new(self) }.select(&:supported?)
   end
 
   def file_watcher
@@ -111,9 +111,5 @@ class BladeRunner
     def clean
       FileUtils.rm_rf(tmp_path)
       FileUtils.mkdir_p(tmp_path)
-    end
-
-    def descendants(klass)
-      ObjectSpace.each_object(Class).select { |c| c < klass }
     end
 end

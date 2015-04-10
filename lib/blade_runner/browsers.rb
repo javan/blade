@@ -6,6 +6,15 @@ class BladeRunner
   class Browser < Base
     attr_reader :test_results
 
+    class << self
+      attr_reader :subclasses
+
+      def inherited(subclass)
+        @subclasses ||= []
+        @subclasses << subclass
+      end
+    end
+
     def initialize(runner)
       super
       @test_results = TestResults.new(self)
