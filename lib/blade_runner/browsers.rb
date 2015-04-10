@@ -45,7 +45,7 @@ class BladeRunner
     end
 
     def test_url
-      URI.escape("http://localhost:#{runner.config.port}/test.html?browser=#{name}&time=#{Time.now.utc}")
+      URI.escape("http://localhost:#{runner.config.port}/blade/#{runner.config.framework}.html?browser=#{name}&time=#{Time.now.utc}")
     end
 
     def supported?
@@ -67,7 +67,7 @@ class BladeRunner
     end
   end
 
-  class Firefox < Browser
+  class Firefox #< Browser
     def name
       "Firefox"
     end
@@ -81,7 +81,7 @@ class BladeRunner
     end
   end
 
-  class Safari < Browser
+  class Safari #< Browser
     def name
       "Safari"
     end

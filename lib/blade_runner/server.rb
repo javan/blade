@@ -60,7 +60,7 @@ class BladeRunner
       end
 
       def local_asset_paths
-        %w( src assets assets/vendor ).map { |a| runner.root_path.join(a) }
+        %w( assets ).map { |a| runner.root_path.join(a) }
       end
 
       def remote_asset_paths

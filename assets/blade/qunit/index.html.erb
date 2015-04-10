@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Blade Runner: QUnit tests</title>
+  <link rel="stylesheet" type="text/css" href="/blade/qunit.css">
+
+  <script src="/faye/client.js"></script>
+  <script src="/blade.js"></script>
+  <script src="/blade/qunit.js"></script>
+
+  <% runner.config.test_scripts.each do |script| %>
+    <script src="/<%= script %>"></script>
+  <% end %>
+</head>
+<body>
+  <div id="tests">
+    <div id="qunit"></div>
+    <div id="qunit-fixture"></div>
+  </div>
+</body>
+</html>
