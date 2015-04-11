@@ -10,6 +10,7 @@ class BladeRunner
         STDERR.reopen("/dev/null", "a")
         Rack::Server.start(app: app, Port: runner.config.port, server: "puma", quiet: true, environment: "development")
       end
+      sleep 2
     end
 
     def stop
