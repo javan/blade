@@ -1,5 +1,3 @@
-require "pp"
-
 class BladeRunner
   class TestResults < Base
     attr_reader :browser, :status, :results, :passes, :failures
@@ -33,15 +31,7 @@ class BladeRunner
         klass = details["result"] ? Pass : Failure
         record_result(klass.new("#{browser.name} - #{details["name"]}", details["message"]))
       when "end"
-        count = 0
-        timer = EM.add_periodic_timer(1) do
-          count += 1
-          if @total == @results.size || count > 20
-            @status = "finished"
-            publish("/results", event: "finished")
-            timer.cancel
-          end
-        end
+        publish("/results", event: "finished")
       end
     end
 

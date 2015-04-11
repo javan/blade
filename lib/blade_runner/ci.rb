@@ -7,6 +7,14 @@ class BladeRunner
       print "# Running"
 
       subscribe("/results") do |details|
+        if details.has_key?("result")
+          if details["result"]
+            print "."
+          else
+            print "F"
+          end
+        end
+
         if details["event"] == "finished"
           @finished_count += 1
         end
@@ -15,12 +23,6 @@ class BladeRunner
           puts
           puts TestResults::Combiner.new(runner.browsers.map(&:test_results)).to_tap
           exit(fail? ? 1 : 0)
-        elsif details.has_key?("result")
-          if details["result"]
-            print "."
-          else
-            print "F"
-          end
         end
       end
     end
