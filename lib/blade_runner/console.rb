@@ -1,6 +1,6 @@
 require "curses"
 
-class BladeRunner
+module BladeRunner
   class Console < Base
     include Curses
 

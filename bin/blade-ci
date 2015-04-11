@@ -10,4 +10,4 @@ end
 
 options[:mode] = :ci
 
-BladeRunner.new(options).start
+BladeRunner.start(options)

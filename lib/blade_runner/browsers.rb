@@ -2,7 +2,7 @@ require "blade_runner/test_results"
 require "childprocess"
 require "uri"
 
-class BladeRunner
+module BladeRunner
   class Browser < Base
     attr_reader :test_results
 

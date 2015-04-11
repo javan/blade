@@ -1,7 +1,7 @@
 require "faye"
 require "sprockets"
 
-class BladeRunner
+module BladeRunner
   class Server < Base
     def start
       @pid = fork do

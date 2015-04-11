@@ -1,6 +1,6 @@
 require "listen"
 
-class BladeRunner
+module BladeRunner
   class FileWatcher < Base
     def start
       @listener = Listen.to(*runner.config.watch_files) do |modified, added, removed|

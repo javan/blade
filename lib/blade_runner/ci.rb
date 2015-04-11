@@ -1,4 +1,4 @@
-class BladeRunner
+module BladeRunner
   class CI < Base
     def start
       @finished_count = 0

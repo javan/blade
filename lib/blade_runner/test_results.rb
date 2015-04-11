@@ -1,4 +1,4 @@
-class BladeRunner
+module BladeRunner
   class TestResults < Base
     attr_reader :browser, :status, :results, :passes, :failures
 

@@ -1,4 +1,4 @@
-class BladeRunner
+module BladeRunner
   class Base
     extend Forwardable
 

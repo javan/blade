@@ -10,15 +10,24 @@ require "blade_runner/file_watcher"
 require "blade_runner/console"
 require "blade_runner/ci"
 
-class BladeRunner
+module BladeRunner
+  extend self
+
   attr_reader :config
 
-  def self.config
-    @@config
-  end
+  SIGNALS = %w( INT )
 
-  def initialize(options = {})
-    @config = @@config = OpenStruct.new(options)
+  def start(options = {})
+    SIGNALS.each do |signal|
+      trap(signal) { stop }
+    end
+
+    at_exit do
+      stop
+      exit $!.status if $!.is_a?(SystemExit)
+    end
+
+    @config = OpenStruct.new(options)
 
     config.port ||= 9876
     config.mode ||= :console
@@ -31,19 +40,6 @@ class BladeRunner
     plugins.each do |name, plugin_config|
       config.plugins[name] = OpenStruct.new(plugin_config)
       require "blade_runner/#{name}"
-    end
-  end
-
-  SIGNALS = %w( INT )
-
-  def start
-    SIGNALS.each do |signal|
-      trap(signal) { stop }
-    end
-
-    at_exit do
-      stop
-      exit $!.status if $!.is_a?(SystemExit)
     end
 
     clean
