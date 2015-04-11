@@ -84,7 +84,7 @@ class BladeRunner
 
       def message
         unless @message.nil?
-          "\n" + PP.pp(@message, "").gsub(/^/, "# ").chomp
+          "\n" + @message.gsub(/^/, "# ").chomp
         end
       end
     end
