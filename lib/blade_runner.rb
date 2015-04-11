@@ -21,10 +21,8 @@ module BladeRunner
 
   attr_reader :config
 
-  SIGNALS = %w( INT )
-
   def start(options = {})
-    SIGNALS.each do |signal|
+    %w( INT ).each do |signal|
       trap(signal) { stop }
     end
 
