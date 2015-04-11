@@ -5,10 +5,16 @@ require "ostruct"
 require "blade_runner/version"
 require "blade_runner/concerns/knife"
 require "blade_runner/server"
-require "blade_runner/browsers"
 require "blade_runner/file_watcher"
 require "blade_runner/console"
 require "blade_runner/ci"
+require "blade_runner/test_results"
+require "blade_runner/browser"
+
+browsers = Dir[File.dirname(__FILE__) + "/blade_runner/browsers/*.rb"].map { |f| File.basename(f) }
+browsers.each do |filename|
+  require "blade_runner/browsers/#{filename}"
+end
 
 module BladeRunner
   extend self
