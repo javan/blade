@@ -3,7 +3,9 @@ require "childprocess"
 require "uri"
 
 module BladeRunner
-  class Browser < Base
+  class Browser
+    include Knife
+
     attr_reader :test_results
 
     class << self
@@ -15,8 +17,7 @@ module BladeRunner
       end
     end
 
-    def initialize(runner)
-      super
+    def initialize
       @test_results = TestResults.new(self)
     end
 
@@ -45,7 +46,7 @@ module BladeRunner
     end
 
     def test_url
-      URI.escape("http://localhost:#{runner.config.port}/blade/#{runner.config.framework}.html?browser=#{name}&time=#{Time.now.utc}")
+      URI.escape("http://localhost:#{config.port}/blade/#{config.framework}.html?browser=#{name}&time=#{Time.now.utc}")
     end
 
     def supported?
@@ -63,7 +64,7 @@ module BladeRunner
     end
 
     def arguments
-      ["--user-data-dir=#{runner.tmp_path}", "--no-default-browser-check", "--no-first-run"]
+      ["--user-data-dir=#{tmp_path}", "--no-default-browser-check", "--no-first-run"]
     end
   end
 
@@ -92,7 +93,7 @@ module BladeRunner
 
     def test_url
       contents = %Q(<script>window.location = "#{super}";</script>)
-      path = runner.tmp_path.join("#{name}.html").to_s
+      path = tmp_path.join("#{name}.html").to_s
       File.write(path, contents)
       path
     end

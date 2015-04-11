@@ -1,8 +1,9 @@
 module BladeRunner
-  class CI < Base
+  class CI
+    include Knife
+
     def start
       @finished_count = 0
-      @browser_count = runner.browsers.size
 
       print "# Running"
 
@@ -19,9 +20,9 @@ module BladeRunner
           @finished_count += 1
         end
 
-        if @finished_count == @browser_count
+        if @finished_count == browsers.size
           puts
-          puts TestResults::Combiner.new(runner.browsers.map(&:test_results)).to_tap
+          puts TestResults::Combiner.new(browsers.map(&:test_results)).to_tap
           exit(fail? ? 1 : 0)
         end
       end
@@ -32,7 +33,7 @@ module BladeRunner
 
     private
       def fail?
-        runner.browsers.map(&:test_results).any? { |r| r.failures.any? }
+        browsers.map(&:test_results).any? { |r| r.failures.any? }
       end
   end
 end

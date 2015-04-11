@@ -1,10 +1,11 @@
 module BladeRunner
-  class TestResults < Base
+  class TestResults
+    include Knife
+
     attr_reader :browser, :status, :results, :passes, :failures
 
     def initialize(browser)
       @browser = browser
-      super(browser.runner)
       reset
 
       subscribe("/tests") do |details|

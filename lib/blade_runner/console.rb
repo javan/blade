@@ -1,7 +1,8 @@
 require "curses"
 
 module BladeRunner
-  class Console < Base
+  class Console
+    include Knife
     include Curses
 
     def start
@@ -69,7 +70,7 @@ module BladeRunner
 
       def init_tabs
         @tabs = []
-        runner.browsers.each do |browser|
+        browsers.each do |browser|
           @tabs << OpenStruct.new(browser: browser)
         end
         display_tab(@tabs.first) if @tabs.first

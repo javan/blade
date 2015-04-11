@@ -3,7 +3,7 @@ require "pathname"
 require "ostruct"
 
 require "blade_runner/version"
-require "blade_runner/base"
+require "blade_runner/concerns/knife"
 require "blade_runner/server"
 require "blade_runner/browsers"
 require "blade_runner/file_watcher"
@@ -72,7 +72,7 @@ module BladeRunner
   end
 
   def server
-    @server ||= Server.new(self)
+    @server ||= Server.new
   end
 
   def client
@@ -80,19 +80,19 @@ module BladeRunner
   end
 
   def browsers
-    @browsers ||= Browser.subclasses.map { |c| c.new(self) }.select(&:supported?)
+    @browsers ||= Browser.subclasses.map { |c| c.new }.select(&:supported?)
   end
 
   def file_watcher
-    @file_watcher ||= FileWatcher.new(self)
+    @file_watcher ||= FileWatcher.new
   end
 
   def console
-    @console ||= Console.new(self)
+    @console ||= Console.new
   end
 
   def ci
-    @ci ||= CI.new(self)
+    @ci ||= CI.new
   end
 
   private

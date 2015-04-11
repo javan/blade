@@ -1,9 +1,11 @@
 require "listen"
 
 module BladeRunner
-  class FileWatcher < Base
+  class FileWatcher
+    include Knife
+
     def start
-      @listener = Listen.to(*runner.config.watch_files) do |modified, added, removed|
+      @listener = Listen.to(*config.watch_files) do |modified, added, removed|
         publish("/filewatcher", modified: modified, added: added, removed: removed)
       end
       @listener.start

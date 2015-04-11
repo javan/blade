@@ -9,7 +9,7 @@
   <script src="/blade.js"></script>
   <script src="/blade/qunit.js"></script>
 
-  <% runner.config.test_scripts.each do |script| %>
+  <% BladeRunner.config.test_scripts.each do |script| %>
     <script src="/<%= script %>"></script>
   <% end %>
 </head>
