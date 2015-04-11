@@ -93,7 +93,7 @@ module BladeRunner
 
     def test_url
       contents = %Q(<script>window.location = "#{super}";</script>)
-      path = tmp_path.join("#{name}.html").to_s
+      path = BladeRunner.tmp_path.join("#{name}.html").to_s
       File.write(path, contents)
       path
     end
