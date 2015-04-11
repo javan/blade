@@ -33,8 +33,15 @@ class BladeRunner
         klass = details["result"] ? Pass : Failure
         record_result(klass.new("#{browser.name} - #{details["name"]}", details["message"]))
       when "end"
-        @status = "finished"
-        publish("/results", event: "finished")
+        count = 0
+        timer = EM.add_periodic_timer(1) do
+          count += 1
+          if @total == @results.size || count > 20
+            @status = "finished"
+            publish("/results", event: "finished")
+            timer.cancel
+          end
+        end
       end
     end
 
