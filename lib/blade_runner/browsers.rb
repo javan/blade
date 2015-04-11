@@ -67,7 +67,7 @@ class BladeRunner
     end
   end
 
-  class Firefox #< Browser
+  class Firefox < Browser
     def name
       "Firefox"
     end
@@ -81,7 +81,7 @@ class BladeRunner
     end
   end
 
-  class Safari #< Browser
+  class Safari < Browser
     def name
       "Safari"
     end
