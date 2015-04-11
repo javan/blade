@@ -15,8 +15,12 @@ class BladeRunner
           puts
           puts TestResults::Combiner.new(runner.browsers.map(&:test_results)).to_tap
           exit(fail? ? 1 : 0)
-        else
-          print "."
+        elsif details.has_key?("result")
+          if details["result"]
+            print "."
+          else
+            print "F"
+          end
         end
       end
     end

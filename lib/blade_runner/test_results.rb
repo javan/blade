@@ -51,11 +51,11 @@ class BladeRunner
       case result
       when Failure
         @failures << result
+        publish("/results", result: false)
       when Pass
         @passes << result
+        publish("/results", result: true)
       end
-
-      publish("/results", result: result.to_tap)
     end
 
     def total
