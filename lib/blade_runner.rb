@@ -19,7 +19,7 @@ end
 module BladeRunner
   extend self
 
-  attr_reader :config
+  attr_reader :config, :browsers
 
   def start(options = {})
     %w( INT ).each do |signal|
@@ -49,15 +49,23 @@ module BladeRunner
     clean
 
     EM.run do
-      @children = [server, browsers, runner_for_mode].flatten
-      @children.each(&:start)
+      get_supported_browsers do |browsers|
+        @browsers = browsers
+        @runnables = [server, browsers, runner_for_mode].flatten
+
+        EM::Iterator.new(@runnables).each do |child, iterator|
+          operation = -> { child.start }
+          callback = ->(result) { iterator.next }
+          EM.defer(operation, callback)
+        end
+      end
     end
   end
 
   def stop
     return if @stopping
     @stopping = true
-    @children.each { |c| c.stop rescue nil }
+    @runnables.each { |c| c.stop rescue nil }
     EM.stop_event_loop
   rescue
     nil
@@ -83,10 +91,6 @@ module BladeRunner
     @client ||= Faye::Client.new("http://localhost:#{config.port}/faye")
   end
 
-  def browsers
-    @browsers ||= Browser.subclasses.map { |c| c.new }.select(&:supported?)
-  end
-
   def file_watcher
     @file_watcher ||= FileWatcher.new
   end
@@ -101,6 +105,12 @@ module BladeRunner
 
   private
     ALLOWED_MODES = [:ci, :console]
+
+    def get_supported_browsers
+      operation = -> { Browser.subclasses.map(&:new).select(&:supported?) }
+      callback = ->(result) { yield(result) }
+      EM.defer(operation, callback)
+    end
 
     def runner_for_mode
       if ALLOWED_MODES.include?(config.mode)
