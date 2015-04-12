@@ -69,10 +69,8 @@ module BladeRunner
   def stop
     return if @stopping
     @stopping = true
-    @runnables.each { |c| c.stop rescue nil }
-    EM.stop_event_loop
-  rescue
-    nil
+    @runnables.each(&:stop)
+    EM.stop if EM.reactor_running?
   end
 
   def lib_path
