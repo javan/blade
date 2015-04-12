@@ -51,13 +51,17 @@ module BladeRunner
     EM.run do
       get_supported_browsers do |browsers|
         @browsers = browsers
-        @runnables = [server, browsers, runner_for_mode].flatten
+        @runnables = [server, browsers].flatten
 
         EM::Iterator.new(@runnables).each do |child, iterator|
           operation = -> { child.start }
           callback = ->(result) { iterator.next }
           EM.defer(operation, callback)
         end
+
+        runner = runner_for_mode
+        @runnables << runner
+        runner.start
       end
     end
   end
