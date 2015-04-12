@@ -51,17 +51,13 @@ module BladeRunner
     EM.run do
       get_supported_browsers do |browsers|
         @browsers = browsers
-        @runnables = [server, browsers].flatten
+        @runnables = [server, interface, browsers].flatten
 
         EM::Iterator.new(@runnables).each do |child, iterator|
           operation = -> { child.start }
           callback = ->(result) { iterator.next }
           EM.defer(operation, callback)
         end
-
-        runner = runner_for_mode
-        @runnables << runner
-        runner.start
       end
     end
   end
@@ -97,27 +93,19 @@ module BladeRunner
     @file_watcher ||= FileWatcher.new
   end
 
-  def console
-    @console ||= Console.new
-  end
-
-  def ci
-    @ci ||= CI.new
+  def interface
+    @interface ||=
+      case config.mode
+      when :ci then CI.new
+      when :console then Console.new
+      end
   end
 
   private
-    ALLOWED_MODES = [:ci, :console]
-
     def get_supported_browsers
       operation = -> { Browser.subclasses.map(&:new).select(&:supported?) }
       callback = ->(result) { yield(result) }
       EM.defer(operation, callback)
-    end
-
-    def runner_for_mode
-      if ALLOWED_MODES.include?(config.mode)
-        send(config.mode)
-      end
     end
 
     def clean
