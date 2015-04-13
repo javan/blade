@@ -4,14 +4,14 @@ class BladeRunner::CI
   def start
     @finished_count = 0
 
-    print "# Running"
+    STDERR.print "# Running"
 
     subscribe("/results") do |details|
       if details.has_key?("result")
         if details["result"]
-          print "."
+          STDERR.print "."
         else
-          print "F"
+          STDERR.print "F"
         end
       end
 
@@ -20,8 +20,8 @@ class BladeRunner::CI
       end
 
       if @finished_count == browsers.size
-        puts
-        puts BladeRunner::TestResults::Combiner.new(browsers.map(&:test_results)).to_tap
+        STDERR.puts
+        STDOUT.puts BladeRunner::TestResults::Combiner.new(browsers.map(&:test_results)).to_tap
         exit(fail? ? 1 : 0)
       end
     end
