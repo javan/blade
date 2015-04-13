@@ -4,7 +4,11 @@ class BladeRunner::CI
   def start
     @finished_count = 0
 
-    STDERR.print "# Running"
+    STDERR.puts "# Starting CI with browsers:"
+    browsers.each do |browser|
+      STDERR.puts "# #{browser.name}"
+    end
+    STDERR.print "# "
 
     subscribe("/results") do |details|
       if details.has_key?("result")
