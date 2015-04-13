@@ -101,6 +101,15 @@ module BladeRunner
       end
   end
 
+  def os
+    @os ||=
+      case RUBY_PLATFORM.downcase
+      when /linux/   then :linux
+      when /darwin/  then :osx
+      when /windows/ then :windows
+      end
+  end
+
   private
     def get_supported_browsers
       operation = -> { Browser.subclasses.map(&:new).select(&:supported?) }
