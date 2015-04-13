@@ -50,6 +50,10 @@ module BladeRunner
 
     EM.run do
       get_supported_browsers do |browsers|
+        if config.filter
+          browsers.select! { |browser| browser.name =~ config.filter }
+        end
+
         @browsers = browsers
         @runnables = [server, interface, browsers].flatten
 
