@@ -3,9 +3,15 @@
 require "blade_runner"
 require "yaml"
 
+options = {}
+
 filename = ".blade.yml"
 if File.exists?(filename)
   options = YAML.load_file(filename)
+end
+
+if mode = ARGV[0]
+  options[:mode] = mode.to_sym
 end
 
 BladeRunner.start(options)
