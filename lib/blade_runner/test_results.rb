@@ -63,7 +63,7 @@ class BladeRunner::TestResults
 
   def to_tap
     lines = results.map(&:to_tap)
-    lines = lines.unshift("1..#{total}}") if total
+    lines = lines.unshift("1..#{total}") if total
     lines.join("\n")
   end
 
