@@ -61,16 +61,20 @@ class BladeRunner::Console
       @red = color_pair(COLOR_RED)
 
       y = 0
-      console_height = 2
-      @console = @screen.subwin(console_height, 0, y, 1)
-      @console.attron(A_BOLD)
-      @console.addstr "BLADE RUNNER"
-      @console.refresh
-      y += console_height
+      header_height = 2
+      @header_window = @screen.subwin(header_height, 0, y, 1)
+      @header_window.attron(A_BOLD)
+      @header_window.addstr "BLADE RUNNER"
+      @header_window.refresh
+      y += header_height
 
       @tab_height = 3
       @tab_y = y
-      y += @tab_height
+      y += @tab_height + 1
+
+      status_height = 2
+      @status_window = @screen.subwin(status_height, 0, y, 1)
+      y += status_height + 1
 
       results_height = @screen.maxy - y
       @results_window = @screen.subwin(results_height, 0, y, 1)
@@ -162,6 +166,11 @@ class BladeRunner::Console
       tab.active = true
       draw_tabs
       @active_tab = tab
+
+      @status_window.clear
+      @status_window.addstr(tab.browser.name + "\n")
+      @status_window.addstr(tab.status)
+      @status_window.refresh
 
       @results_window.clear
       @results_window.addstr(tab.browser.test_results.to_tap)
