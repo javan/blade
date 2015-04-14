@@ -23,7 +23,16 @@ class BladeRunner::Console
     end
 
     subscribe("/tests") do |details|
-      draw_tab_status_dots
+      draw_tabs
+
+      if details["result"]
+        if @active_tab.browser.name == details["browser"]
+          if result = @active_tab.browser.test_results.results.last
+            @results_window.addstr(result.to_tap + "\n")
+            @results_window.refresh
+          end
+        end
+      end
     end
   end
 
@@ -53,10 +62,13 @@ class BladeRunner::Console
 
       y = 0
       console_height = 2
-      @console = @screen.subwin(console_height, 0, y, 0)
+      @console = @screen.subwin(console_height, 0, y, 1)
+      @console.attron(A_BOLD)
+      @console.addstr "BLADE RUNNER"
+      @console.refresh
       y += console_height
 
-      @tab_height = 4
+      @tab_height = 3
       @tab_y = y
       y += @tab_height
 
@@ -72,7 +84,7 @@ class BladeRunner::Console
       browsers.each do |browser|
         @tabs << OpenStruct.new(browser: browser)
       end
-      display_tab(@tabs.first) if @tabs.first
+      activate_tab(@tabs.first) if @tabs.first
     end
 
     def handle_keys
@@ -92,88 +104,75 @@ class BladeRunner::Console
       index = @tabs.index(@tabs.detect(&:active))
       tabs = @tabs.rotate(index)
       tab = direction == :next ? tabs[1] : tabs.last
-      display_tab(tab)
+      activate_tab(tab)
     end
 
     def draw_tabs
+      return unless tabs_need_redraw?
+
       # Horizontal line
       @screen.setpos(@tab_y + 2, 0)
       @screen.addstr("═" * @screen.maxx)
-      @screen.refresh
 
       tab_x = 1
       @tabs.each do |tab|
+        tab.status = tab.browser.test_results.status
+
         if tab.window
-          tab.window.clear
+          tab.window.clear rescue nil
           tab.window.close
+          tab.window = nil
         end
 
-        width = tab.browser.name.length + 6
+        width = 5
         window = @screen.subwin(@tab_height, width, @tab_y, tab_x)
+        tab.window = window
+
+        dot = tab.status == "pending" ? "○" : "●"
+        color = color_for_status(tab.status)
 
         if tab.active
-          inner_width = tab.browser.name.length + 4
-          window.addstr "╔" + "═" * inner_width + "╗"
-          window.addstr "║"
-          window.addstr("   ")
-          window.attron(A_BOLD)
-          window.addstr tab.browser.name
-          window.attroff(A_BOLD)
-          window.addstr(" ")
-          window.addstr                           "║"
-          window.addstr "╝" + " " * inner_width + "╚"
+          window.addstr "╔═══╗"
+          window.addstr "║ "
+          window.attron(color) if color
+          window.addstr(dot)
+          window.attroff(color) if color
+          window.addstr(" ║")
+          window.addstr "╝   ╚"
         else
           window.addstr "\n"
-          window.addstr "    "
-          window.addstr tab.browser.name
-          window.addstr "  "
-          window.addstr "═" * width
+          window.attron(color) if color
+          window.addstr("  #{dot}\n")
+          window.attroff(color) if color
+          window.addstr "═════"
         end
 
         window.refresh
-        tab.window = window
         tab_x += width
       end
-
-      draw_tab_status_dots
     end
 
-    def draw_tab_status_dots
-      @tabs.each do |tab|
-        if tab.status_window
-          tab.status_window.clear
-          tab.status_window.close
-        end
-
-        x = tab.window.begx + 2
-        y = tab.window.begy + 1
-        tab.status_window = Window.new(1,1,y,x)
-
-        color = if tab.browser.test_results.failures.any?
-          @red
-        else
-          if tab.browser.test_results.status == "running"
-            @yellow
-          elsif tab.browser.test_results.status == "finished"
-            @green
-          end
-        end
-
-        bullet = tab.browser.test_results.status == "pending" ? "○" : "●"
-
-        tab.status_window.attrset(color) if color
-        tab.status_window.addstr(bullet)
-        tab.status_window.refresh
-      end
+    def tabs_need_redraw?
+      (@active_tab != @tabs.detect(&:active)) ||
+        @tabs.any? { |tab| tab.window.nil? || tab.status != tab.browser.test_results.status }
     end
 
-    def display_tab(tab)
+    def activate_tab(tab)
       @tabs.each { |t| t.active = false }
       tab.active = true
       draw_tabs
+      @active_tab = tab
 
       @results_window.clear
-      @results_window.addstr(tab.browser.test_results.to_s)
+      @results_window.addstr(tab.browser.test_results.to_tap)
       @results_window.refresh
+    end
+
+    def color_for_status(status)
+      case status
+      when "running"  then @yellow
+      when "finished" then @green
+      when "failed"   then @red
+      end
     end
 end

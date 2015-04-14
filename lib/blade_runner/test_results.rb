@@ -26,12 +26,17 @@ class BladeRunner::TestResults
       reset
       @status = "running"
       @total = details["total"]
-      publish("/results", event: "running")
+      publish("/results", event: "running", browser: browser.name)
     when "result"
       klass = details["result"] ? Pass : Failure
       record_result(klass.new("#{browser.name} - #{details["name"]}", details["message"]))
     when "end"
-      publish("/results", event: "finished")
+      publish("/results", event: "finished", browser: browser.name)
+      if @failures.any?
+        @status = "failed"
+      else
+        @status = "finished"
+      end
     end
   end
 
@@ -41,10 +46,10 @@ class BladeRunner::TestResults
     case result
     when Failure
       @failures << result
-      publish("/results", result: false)
+      publish("/results", result: false, browser: browser.name)
     when Pass
       @passes << result
-      publish("/results", result: true)
+      publish("/results", result: true, browser: browser.name)
     end
   end
 
