@@ -1,4 +1,3 @@
-require "childprocess"
 require "uri"
 
 class BladeRunner::Browser
@@ -23,24 +22,12 @@ class BladeRunner::Browser
     raise NotImplementedError
   end
 
-  def command
+  def start
     raise NotImplementedError
   end
 
-  def start
-    @process = ChildProcess.build(*command_with_arguments)
-    @process.start
-  end
-
   def stop
-    @process.stop
-  end
-
-  def arguments
-  end
-
-  def command_with_arguments
-    [command, arguments, test_url].flatten.compact
+    raise NotImplementedError
   end
 
   def test_url
@@ -48,6 +35,6 @@ class BladeRunner::Browser
   end
 
   def supported?
-    File.exists?(command)
+    true
   end
 end

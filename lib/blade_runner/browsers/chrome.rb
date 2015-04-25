@@ -3,11 +3,12 @@ class BladeRunner::Chrome < BladeRunner::Browser
     "Chrome"
   end
 
-  def command
-    "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
+  def start
+    @driver = Selenium::WebDriver.for :chrome
+    @driver.navigate.to test_url
   end
 
-  def arguments
-    ["--user-data-dir=#{tmp_path}", "--no-default-browser-check", "--no-first-run"]
+  def stop
+    @driver.quit
   end
 end

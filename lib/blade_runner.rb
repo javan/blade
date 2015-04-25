@@ -1,4 +1,5 @@
 require "eventmachine"
+require "selenium-webdriver"
 require "pathname"
 require "ostruct"
 

@@ -3,14 +3,12 @@ class BladeRunner::Safari < BladeRunner::Browser
     "Safari"
   end
 
-  def command
-    "/Applications/Safari.app/Contents/MacOS/Safari"
+  def start
+    @driver = Selenium::WebDriver.for :safari
+    @driver.navigate.to test_url
   end
 
-  def test_url
-    contents = %Q(<script>window.location = "#{super}";</script>)
-    path = BladeRunner.tmp_path.join("#{name}.html").to_s
-    File.write(path, contents)
-    path
+  def stop
+    @driver.quit
   end
 end

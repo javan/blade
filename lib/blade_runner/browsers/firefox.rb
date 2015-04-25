@@ -3,11 +3,12 @@ class BladeRunner::Firefox < BladeRunner::Browser
     "Firefox"
   end
 
-  def command
-    "/Applications/Firefox.app/Contents/MacOS/firefox"
+  def start
+    @driver = Selenium::WebDriver.for :firefox
+    @driver.navigate.to test_url
   end
 
-  def arguments
-    ["-new-instance", "-purgecaches", "-private"]
+  def stop
+    @driver.quit
   end
 end
