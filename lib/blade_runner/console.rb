@@ -13,16 +13,23 @@ class BladeRunner::Console
   end
 
   def run
+    @tabs = []
+    @sessions = {}
+
     start_screen
     init_windows
-    init_tabs
     handle_keys
 
-    subscribe("/filewatcher") do
-      publish("/commands", command: "start")
-    end
-
     subscribe("/tests") do |details|
+      if session_id = details["session_id"]
+        if @sessions[session_id].nil?
+          browser = browsers.detect { |b| b.name == details["browser"] }
+          @sessions[session_id] = browser
+          @tabs << OpenStruct.new(browser: browser)
+          activate_tab(@tabs.first) if @tabs.size == 1
+        end
+      end
+
       draw_tabs
 
       if details["result"]
@@ -81,14 +88,6 @@ class BladeRunner::Console
       @results_window.scrollok(true)
 
       @screen.refresh
-    end
-
-    def init_tabs
-      @tabs = []
-      browsers.each do |browser|
-        @tabs << OpenStruct.new(browser: browser)
-      end
-      activate_tab(@tabs.first) if @tabs.first
     end
 
     def handle_keys
@@ -159,7 +158,8 @@ class BladeRunner::Console
     end
 
     def tabs_need_redraw?
-      (@active_tab != @tabs.detect(&:active)) ||
+      @active_tab.nil? ||
+        (@active_tab != @tabs.detect(&:active)) ||
         @tabs.any? { |tab| tab.window.nil? || tab.status != tab.browser.test_results.status }
     end
 

@@ -1,35 +1,42 @@
-fayeURL = "http://localhost:#{window.location.port}/faye"
-client = new Faye.Client fayeURL
-channel = "/tests"
+class Blade
+  FAYE_URL: "http://localhost:#{window.location.port}/faye"
+  CHANNEL: "/tests"
+  SESSION_KEY: "blade:session"
 
-@subscribe = (callback) ->
-  client.subscribe("/commands", callback)
+  constructor: ->
+    @client = new Faye.Client @FAYE_URL
 
-@publish = (event, data = {}) ->
-  data = copy(data)
-  data.browser = getParams().browser
-  data.event = event
-  client.publish(channel, data)
+  publish: (event, data = {}) ->
+    data = copy(data)
+    data.event = event
+    data.session_id = @getSessionId()
+    data.browser = getParams().browser
+    @client.publish(@CHANNEL, data)
 
-copy = (object) ->
-  results = {}
-  results[key] = value for key, value of object
-  results
+  getSessionId: ->
+    if id = sessionStorage.getItem(@SESSION_KEY)
+      id
+    else
+      id = createRandomKey()
+      sessionStorage.setItem(@SESSION_KEY, id)
+      id
 
-getParams = ->
-  query = location.search.split("?")
-  query = query[query.length - 1]
+  createRandomKey = ->
+    Math.floor((1 + Math.random()) * 0x100000000).toString(16)
 
-  params = {}
-  for pair in query.split("&")
-    [key, value] = pair.split("=")
-    params[decodeURIComponent(key)] = decodeURIComponent(value)
-  params
+  copy = (object) ->
+    results = {}
+    results[key] = value for key, value of object
+    results
 
+  getParams = ->
+    query = location.search.split("?")
+    query = query[query.length - 1]
 
-subscribe ({command} = {}) ->
-  switch command
-    when "start"
-      window.location.reload()
+    params = {}
+    for pair in query.split("&")
+      [key, value] = pair.split("=")
+      params[decodeURIComponent(key)] = decodeURIComponent(value)
+    params
 
-
+@blade = new Blade
