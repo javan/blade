@@ -3,9 +3,10 @@ class BladeRunner::TestResults
 
   attr_reader :session_id, :status, :results, :passes, :failures
 
-  def initialize(session_id)
+  def initialize(session_id, details = nil)
     @session_id = session_id
     reset
+    process_test_result(details) if details
 
     subscribe("/tests") do |details|
       if details["session_id"] == session_id
@@ -31,12 +32,9 @@ class BladeRunner::TestResults
       klass = details["result"] ? Pass : Failure
       record_result(klass.new(details["name"], details["message"]))
     when "end"
-      publish("/results", event: "finished", session_id: session_id)
-      if @failures.any?
-        @status = "failed"
-      else
-        @status = "finished"
-      end
+      @status = "finished" unless @failures.any?
+      @completed = true
+      publish("/results", event: "completed", status: @status, session_id: session_id)
     end
   end
 
@@ -46,6 +44,7 @@ class BladeRunner::TestResults
     case result
     when Failure
       @failures << result
+      @status = "failed"
       publish("/results", result: false, session_id: session_id)
     when Pass
       @passes << result
@@ -56,7 +55,7 @@ class BladeRunner::TestResults
   def total
     if @total
       @total
-    elsif status == "finished"
+    elsif @completed
       results.size
     end
   end

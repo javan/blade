@@ -23,7 +23,7 @@ class BladeRunner::Console
     subscribe("/tests") do |details|
       if session_id = details["session_id"]
         if @sessions[session_id].nil?
-          session = OpenStruct.new(browser: details["browser"], test_results: BladeRunner::TestResults.new(session_id))
+          session = OpenStruct.new(browser: details["browser"], test_results: BladeRunner::TestResults.new(session_id, details))
           @sessions[session_id] = session
           tab = OpenStruct.new(session_id: session_id, name: "#{details["browser"]} (#{session_id})")
           @tabs << tab
