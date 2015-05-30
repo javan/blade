@@ -31,17 +31,15 @@ class BladeRunner::Console
         end
       end
 
-      draw_tabs
-
-      if details["result"]
-        if @active_tab.session_id == details["session_id"]
-          test_results = @sessions[@active_tab.session_id].test_results
-          if result = test_results.results.last
-            @results_window.addstr(result.to_tap + "\n")
-            @results_window.refresh
-          end
+      if @active_tab.session_id == details["session_id"]
+        test_results = @sessions[@active_tab.session_id].test_results
+        if result = test_results.results.last
+          @results_window.addstr(result.to_tap + "\n")
+          @results_window.refresh
         end
       end
+
+      EM.next_tick { draw_tabs }
     end
   end
 
@@ -159,12 +157,15 @@ class BladeRunner::Console
         window.refresh
         tab_x += width
       end
+
+      @screen.refresh
     end
 
     def tabs_need_redraw?
-      @active_tab.nil? ||
-        (@active_tab != @tabs.detect(&:active)) ||
-        @tabs.any? { |tab| tab.window.nil? || tab.status != @sessions[tab.session_id].test_results.status }
+      if @tabs.any?
+        (@active_tab.nil? || @active_tab != @tabs.detect(&:active)) ||
+          @tabs.any? { |tab| tab.status != @sessions[tab.session_id].test_results.status }
+      end
     end
 
     def activate_tab(tab)
