@@ -1,3 +1,5 @@
+#= require ./bowser
+
 class Blade
   FAYE_URL: "http://localhost:#{window.location.port}/faye"
   CHANNEL: "/tests"
@@ -10,7 +12,7 @@ class Blade
     data = copy(data)
     data.event = event
     data.session_id = @getSessionId()
-    data.browser = getParams().browser
+    data.browser = "#{bowser.name} #{bowser.version}"
     @client.publish(@CHANNEL, data)
 
   getSessionId: ->

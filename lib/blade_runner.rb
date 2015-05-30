@@ -1,5 +1,4 @@
 require "eventmachine"
-require "selenium-webdriver"
 require "pathname"
 require "ostruct"
 
@@ -10,17 +9,11 @@ require "blade_runner/file_watcher"
 require "blade_runner/console"
 require "blade_runner/ci"
 require "blade_runner/test_results"
-require "blade_runner/browser"
-
-browsers = Dir[File.dirname(__FILE__) + "/blade_runner/browsers/*.rb"].map { |f| File.basename(f) }
-browsers.each do |filename|
-  require "blade_runner/browsers/#{filename}"
-end
 
 module BladeRunner
   extend self
 
-  attr_reader :config, :browsers
+  attr_reader :config
 
   def start(options = {})
     %w( INT ).each do |signal|
@@ -47,23 +40,11 @@ module BladeRunner
       require "blade_runner/#{name}"
     end
 
-    clean
+    #clean
 
     EM.run do
-      get_supported_browsers do |browsers|
-        if config.filter
-          browsers.select! { |browser| browser.name =~ config.filter }
-        end
-
-        @browsers = browsers
-        @runnables = [server, interface, browsers].flatten
-
-        EM::Iterator.new(@runnables).each do |child, iterator|
-          operation = -> { child.start }
-          callback = ->(result) { iterator.next }
-          EM.defer(operation, callback)
-        end
-      end
+      @runnables = [server, interface]
+      @runnables.each(&:start)
     end
   end
 
@@ -116,12 +97,6 @@ module BladeRunner
   end
 
   private
-    def get_supported_browsers
-      operation = -> { Browser.subclasses.map(&:new).select(&:supported?) }
-      callback = ->(result) { yield(result) }
-      EM.defer(operation, callback)
-    end
-
     def clean
       FileUtils.rm_rf(tmp_path)
       FileUtils.mkdir_p(tmp_path)

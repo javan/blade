@@ -23,9 +23,10 @@ class BladeRunner::Console
     subscribe("/tests") do |details|
       if session_id = details["session_id"]
         if @sessions[session_id].nil?
-          browser = browsers.detect { |b| b.name == details["browser"] }
-          @sessions[session_id] = browser
-          @tabs << OpenStruct.new(browser: browser)
+          session = OpenStruct.new(browser: details["browser"], test_results: BladeRunner::TestResults.new(session_id))
+          @sessions[session_id] = session
+          tab = OpenStruct.new(session_id: session_id, name: "#{details["browser"]} (#{session_id})")
+          @tabs << tab
           activate_tab(@tabs.first) if @tabs.size == 1
         end
       end
@@ -33,8 +34,9 @@ class BladeRunner::Console
       draw_tabs
 
       if details["result"]
-        if @active_tab.browser.name == details["browser"]
-          if result = @active_tab.browser.test_results.results.last
+        if @active_tab.session_id == details["session_id"]
+          test_results = @sessions[@active_tab.session_id].test_results
+          if result = test_results.results.last
             @results_window.addstr(result.to_tap + "\n")
             @results_window.refresh
           end
@@ -121,7 +123,7 @@ class BladeRunner::Console
 
       tab_x = 1
       @tabs.each do |tab|
-        tab.status = tab.browser.test_results.status
+        tab.status = @sessions[tab.session_id].test_results.status
 
         if tab.window
           tab.window.clear rescue nil
@@ -160,7 +162,7 @@ class BladeRunner::Console
     def tabs_need_redraw?
       @active_tab.nil? ||
         (@active_tab != @tabs.detect(&:active)) ||
-        @tabs.any? { |tab| tab.window.nil? || tab.status != tab.browser.test_results.status }
+        @tabs.any? { |tab| tab.window.nil? || tab.status != @sessions[tab.session_id].test_results.status }
     end
 
     def activate_tab(tab)
@@ -170,12 +172,12 @@ class BladeRunner::Console
       @active_tab = tab
 
       @status_window.clear
-      @status_window.addstr(tab.browser.name + "\n")
+      @status_window.addstr(tab.name + "\n")
       @status_window.addstr(tab.status)
       @status_window.refresh
 
       @results_window.clear
-      @results_window.addstr(tab.browser.test_results.to_tap)
+      @results_window.addstr(@sessions[tab.session_id].test_results.to_tap)
       @results_window.refresh
     end
 

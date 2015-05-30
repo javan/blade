@@ -1,14 +1,14 @@
 class BladeRunner::TestResults
   include BladeRunner::Knife
 
-  attr_reader :browser, :status, :results, :passes, :failures
+  attr_reader :session_id, :status, :results, :passes, :failures
 
-  def initialize(browser)
-    @browser = browser
+  def initialize(session_id)
+    @session_id = session_id
     reset
 
     subscribe("/tests") do |details|
-      if details["browser"] == browser.name
+      if details["session_id"] == session_id
         process_test_result(details)
       end
     end
@@ -26,12 +26,12 @@ class BladeRunner::TestResults
       reset
       @status = "running"
       @total = details["total"]
-      publish("/results", event: "running", browser: browser.name)
+      publish("/results", event: "running", session_id: session_id)
     when "result"
       klass = details["result"] ? Pass : Failure
-      record_result(klass.new("#{browser.name} - #{details["name"]}", details["message"]))
+      record_result(klass.new(details["name"], details["message"]))
     when "end"
-      publish("/results", event: "finished", browser: browser.name)
+      publish("/results", event: "finished", session_id: session_id)
       if @failures.any?
         @status = "failed"
       else
@@ -46,10 +46,10 @@ class BladeRunner::TestResults
     case result
     when Failure
       @failures << result
-      publish("/results", result: false, browser: browser.name)
+      publish("/results", result: false, session_id: session_id)
     when Pass
       @passes << result
-      publish("/results", result: true, browser: browser.name)
+      publish("/results", result: true, session_id: session_id)
     end
   end
 
