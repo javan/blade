@@ -73,7 +73,9 @@ class BladeRunner::Console
       header_height = 2
       @header_window = @screen.subwin(header_height, 0, y, 1)
       @header_window.attron(A_BOLD)
-      @header_window.addstr "BLADE RUNNER [press 'q' to quit]"
+      @header_window.addstr "BLADE RUNNER [press 'q' to quit]\n"
+      @header_window.attroff(A_BOLD)
+      @header_window.addstr "Open #{test_url} to start"
       @header_window.refresh
       y += header_height
 

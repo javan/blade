@@ -55,6 +55,10 @@ module BladeRunner
     EM.stop if EM.reactor_running?
   end
 
+  def test_url
+    "http://localhost:#{config.port}/blade/#{config.framework}.html"
+  end
+
   def lib_path
     Pathname.new(File.dirname(__FILE__))
   end
