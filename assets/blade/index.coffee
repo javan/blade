@@ -33,14 +33,4 @@ class Blade
     results[key] = value for key, value of object
     results
 
-  getParams = ->
-    query = location.search.split("?")
-    query = query[query.length - 1]
-
-    params = {}
-    for pair in query.split("&")
-      [key, value] = pair.split("=")
-      params[decodeURIComponent(key)] = decodeURIComponent(value)
-    params
-
 @blade = new Blade
