@@ -14,32 +14,28 @@ class BladeRunner::Console
 
   def run
     @tabs = []
-    @sessions = {}
 
     start_screen
     init_windows
     handle_keys
 
     subscribe("/tests") do |details|
-      if session_id = details["session_id"]
-        if @sessions[session_id].nil?
-          session = OpenStruct.new(browser: details["browser"], test_results: BladeRunner::TestResults.new(session_id, details))
-          @sessions[session_id] = session
-          tab = OpenStruct.new(session_id: session_id, name: "#{details["browser"]} (#{session_id})")
+      if session = sessions[details["session_id"]]
+        unless @tabs.detect { |t| t.session_id == session.id }
+          tab = OpenStruct.new(session_id: session.id, name: "#{details["browser"]} (#{session.id})")
           @tabs << tab
           activate_tab(@tabs.first) if @tabs.size == 1
         end
-      end
 
-      if @active_tab.session_id == details["session_id"]
-        test_results = @sessions[@active_tab.session_id].test_results
-        if result = test_results.results.last
-          @results_window.addstr(result.to_tap + "\n")
-          @results_window.refresh
+        if @active_tab.session_id == session.id
+          if result = session.test_results.results.last
+            @results_window.addstr(result.to_tap + "\n")
+            @results_window.refresh
+          end
         end
-      end
 
-      EM.next_tick { draw_tabs }
+        EM.next_tick { draw_tabs }
+      end
     end
   end
 
@@ -73,7 +69,7 @@ class BladeRunner::Console
       @header_window.attron(A_BOLD)
       @header_window.addstr "BLADE RUNNER [press 'q' to quit]\n"
       @header_window.attroff(A_BOLD)
-      @header_window.addstr "Open #{test_url} to start"
+      @header_window.addstr "Open #{BladeRunner.url} to start"
       @header_window.refresh
       y += header_height
 
@@ -123,7 +119,7 @@ class BladeRunner::Console
 
       tab_x = 1
       @tabs.each do |tab|
-        tab.status = @sessions[tab.session_id].test_results.status
+        tab.status = sessions[tab.session_id].test_results.status
 
         if tab.window
           tab.window.clear rescue nil
@@ -164,7 +160,7 @@ class BladeRunner::Console
     def tabs_need_redraw?
       if @tabs.any?
         (@active_tab.nil? || @active_tab != @tabs.detect(&:active)) ||
-          @tabs.any? { |tab| tab.status != @sessions[tab.session_id].test_results.status }
+          @tabs.any? { |tab| tab.status != sessions[tab.session_id].test_results.status }
       end
     end
 
@@ -180,7 +176,7 @@ class BladeRunner::Console
       @status_window.refresh
 
       @results_window.clear
-      @results_window.addstr(@sessions[tab.session_id].test_results.to_tap)
+      @results_window.addstr(sessions[tab.session_id].test_results.to_tap)
       @results_window.refresh
     end
 

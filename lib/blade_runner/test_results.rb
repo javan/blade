@@ -3,10 +3,9 @@ class BladeRunner::TestResults
 
   attr_reader :session_id, :status, :results, :passes, :failures
 
-  def initialize(session_id, details = nil)
+  def initialize(session_id)
     @session_id = session_id
     reset
-    process_test_result(details) if details
 
     subscribe("/tests") do |details|
       if details["session_id"] == session_id

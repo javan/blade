@@ -9,15 +9,27 @@ class BladeRunner::Server
   end
 
   private
+    class App
+      include BladeRunner::Knife
+
+      def call(env)
+        case env["PATH_INFO"]
+        when "/"
+          [302, { "Location" => "/sessions/#{sessions.create.id}" }, []]
+        when /sessions\/\w+/
+          env["PATH_INFO"] = "/blade/#{config.framework}.html"
+          assets.environment.call(env)
+        when /faye/
+          BladeRunner.bayeux.call(env)
+        else
+          assets.environment.call(env)
+        end
+      end
+    end
+
     def app
       Rack::Builder.app do
-        map "/" do
-          run BladeRunner.assets.environment
-        end
-
-        map "/faye" do
-          run BladeRunner.bayeux
-        end
+        run App.new
       end
     end
 end

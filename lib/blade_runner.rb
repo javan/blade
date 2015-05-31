@@ -7,6 +7,7 @@ require "blade_runner/version"
 require "blade_runner/concerns/knife"
 require "blade_runner/assets"
 require "blade_runner/server"
+require "blade_runner/session_manager"
 require "blade_runner/console"
 require "blade_runner/ci"
 require "blade_runner/test_results"
@@ -55,8 +56,8 @@ module BladeRunner
     EM.stop if EM.reactor_running?
   end
 
-  def test_url
-    "http://localhost:#{config.port}/blade/#{config.framework}.html"
+  def url
+    "http://localhost:#{config.port}"
   end
 
   def lib_path
@@ -77,6 +78,10 @@ module BladeRunner
 
   def server
     @server ||= Server.new
+  end
+
+  def sessions
+    @session ||= SessionManager.new
   end
 
   def bayeux
