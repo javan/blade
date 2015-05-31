@@ -24,7 +24,6 @@ Gem::Specification.new do |spec|
   spec.add_dependency "faye"
   spec.add_dependency "eventmachine"
   spec.add_dependency "puma"
-  spec.add_dependency "listen"
   spec.add_dependency "curses"
   spec.add_dependency "sprockets"
   spec.add_dependency "coffee-script"

@@ -4,8 +4,8 @@ require "ostruct"
 
 require "blade_runner/version"
 require "blade_runner/concerns/knife"
+require "blade_runner/assets"
 require "blade_runner/server"
-require "blade_runner/file_watcher"
 require "blade_runner/console"
 require "blade_runner/ci"
 require "blade_runner/test_results"
@@ -43,7 +43,7 @@ module BladeRunner
     #clean
 
     EM.run do
-      @runnables = [server, interface]
+      @runnables = [assets, server, interface]
       @runnables.each(&:start)
     end
   end
@@ -69,6 +69,10 @@ module BladeRunner
 
   def tmp_path
     root_path.join("tmp")
+  end
+
+  def assets
+    @assets ||= Assets.new
   end
 
   def server

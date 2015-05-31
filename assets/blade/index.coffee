@@ -7,6 +7,8 @@ class Blade
 
   constructor: ->
     @client = new Faye.Client @FAYE_URL
+    @client.subscribe "/assets", (data) ->
+      window.location.reload() if data.changed
 
   publish: (event, data = {}) ->
     data = copy(data)
