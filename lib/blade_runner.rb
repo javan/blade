@@ -32,7 +32,6 @@ module BladeRunner
     config.mode ||= :console
     config.asset_paths = Array(config.asset_paths)
     config.test_scripts = Array(config.test_scripts)
-    config.watch_files = Array(config.watch_files)
 
     plugins = config.plugins || {}
     config.plugins = OpenStruct.new
@@ -86,10 +85,6 @@ module BladeRunner
 
   def client
     @client ||= Faye::Client.new("http://localhost:#{config.port}/faye")
-  end
-
-  def file_watcher
-    @file_watcher ||= FileWatcher.new
   end
 
   def interface
