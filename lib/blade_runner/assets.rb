@@ -7,9 +7,6 @@ class BladeRunner::Assets
     watch_test_scripts_for_changes
   end
 
-  def stop
-  end
-
   def environment
     @environment ||= Sprockets::Environment.new do |env|
       env.cache = Sprockets::Cache::FileStore.new(tmp_path)

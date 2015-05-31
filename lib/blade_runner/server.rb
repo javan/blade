@@ -8,9 +8,6 @@ class BladeRunner::Server
     Rack::Server.start(app: app, Port: config.port, server: "thin")
   end
 
-  def stop
-  end
-
   private
     def app
       Rack::Builder.app do

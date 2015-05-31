@@ -44,14 +44,14 @@ module BladeRunner
 
     EM.run do
       @runnables = [assets, server, interface]
-      @runnables.each(&:start)
+      @runnables.each { |r| r.start if r.respond_to?(:start) }
     end
   end
 
   def stop
     return if @stopping
     @stopping = true
-    @runnables.each(&:stop)
+    @runnables.each { |r| r.stop if r.respond_to?(:stop) }
     EM.stop if EM.reactor_running?
   end
 
