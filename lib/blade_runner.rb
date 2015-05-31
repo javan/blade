@@ -95,15 +95,6 @@ module BladeRunner
       end
   end
 
-  def os
-    @os ||=
-      case RUBY_PLATFORM.downcase
-      when /linux/   then :linux
-      when /darwin/  then :osx
-      when /windows/ then :windows
-      end
-  end
-
   private
     def clean
       FileUtils.rm_rf(tmp_path)
