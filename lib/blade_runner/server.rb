@@ -1,19 +1,14 @@
+require "faye/websocket"
+
 class BladeRunner::Server
   include BladeRunner::Knife
 
   def start
-    @pid = fork do
-      STDIN.reopen("/dev/null")
-      STDOUT.reopen("/dev/null", "a")
-      STDERR.reopen("/dev/null", "a")
-      Rack::Server.start(app: app, Port: config.port, server: "puma", quiet: true, environment: "development")
-    end
-    sleep 2
+    Faye::WebSocket.load_adapter("thin")
+    Rack::Server.start(app: app, Port: config.port, server: "thin")
   end
 
   def stop
-    Process.kill("INT", @pid)
-    Process.wait(@pid)
   end
 
   private
