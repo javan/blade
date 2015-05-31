@@ -1,4 +1,5 @@
 require "eventmachine"
+require "faye"
 require "pathname"
 require "ostruct"
 
@@ -77,6 +78,10 @@ module BladeRunner
 
   def server
     @server ||= Server.new
+  end
+
+  def bayeux
+    @bayeux ||= Faye::RackAdapter.new(mount: "/", timeout: 25)
   end
 
   def client

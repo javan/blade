@@ -1,5 +1,3 @@
-require "faye"
-
 class BladeRunner::Server
   include BladeRunner::Knife
 
@@ -20,20 +18,14 @@ class BladeRunner::Server
 
   private
     def app
-      _faye = faye
-
       Rack::Builder.app do
         map "/" do
           run BladeRunner.assets.environment
         end
 
         map "/faye" do
-          run _faye
+          run BladeRunner.bayeux
         end
       end
-    end
-
-    def faye
-      @faye ||= Faye::RackAdapter.new(mount: "/", timeout: 25)
     end
 end
