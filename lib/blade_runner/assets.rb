@@ -14,6 +14,10 @@ class BladeRunner::Assets
       asset_paths.each do |path|
         env.append_path(path)
       end
+
+      env.context_class.class_eval do
+        include BladeRunner::Knife
+      end
     end
   end
 

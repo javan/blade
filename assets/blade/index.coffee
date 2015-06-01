@@ -1,10 +1,9 @@
 class Blade
-  FAYE_URL: "http://localhost:#{window.location.port}/faye"
   CHANNEL: "/tests"
   SESSION_ID: window.location.pathname.match(/sessions\/(\w+)/)?[1]
 
   constructor: ->
-    @client = new Faye.Client @FAYE_URL
+    @client = new Faye.Client getMetaTagContent("websocket")
     @client.subscribe "/assets", (data) ->
       window.location.reload() if data.changed
 
@@ -18,5 +17,8 @@ class Blade
     results = {}
     results[key] = value for key, value of object
     results
+
+  getMetaTagContent = (name) ->
+    document.querySelector("meta[name='#{name}']").getAttribute("content")
 
 @blade = new Blade

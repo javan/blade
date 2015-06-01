@@ -56,8 +56,8 @@ module BladeRunner
     EM.stop if EM.reactor_running?
   end
 
-  def url
-    "http://localhost:#{config.port}"
+  def blade_url(path = "")
+    "http://localhost:#{config.port}#{path}"
   end
 
   def lib_path
@@ -80,16 +80,12 @@ module BladeRunner
     @server ||= Server.new
   end
 
+  def client
+    server.client
+  end
+
   def sessions
     @session ||= SessionManager.new
-  end
-
-  def bayeux
-    @bayeux ||= Faye::RackAdapter.new(mount: "/", timeout: 25)
-  end
-
-  def client
-    @client ||= Faye::Client.new("http://localhost:#{config.port}/faye")
   end
 
   def interface

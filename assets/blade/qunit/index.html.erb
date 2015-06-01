@@ -5,7 +5,8 @@
   <title>Blade Runner: QUnit tests</title>
   <link rel="stylesheet" type="text/css" href="/blade/qunit.css">
 
-  <script src="/faye/client.js"></script>
+  <meta name="websocket" content="<%= server.websocket_url %>">
+  <script src="<%= server.websocket_url("/client.js") %>"></script>
   <script src="/blade.js"></script>
   <script src="/blade/qunit.js"></script>
 
