@@ -1,7 +1,7 @@
 class BladeRunner::TestResults
   include BladeRunner::Knife
 
-  attr_reader :session_id, :status, :results, :passes, :failures
+  attr_reader :session_id, :status, :lines, :passes, :failures
 
   def initialize(session_id)
     @session_id = session_id
@@ -15,54 +15,57 @@ class BladeRunner::TestResults
   end
 
   def reset
-    @results, @passes, @failures = [], [], []
+    @lines = []
+    @passes = 0
+    @failures = 0
     @status = "pending"
     @total = nil
   end
 
   def process_test_result(details)
+    publication = {}
+
     case details["event"]
     when "begin"
       reset
       @status = "running"
       @total = details["total"]
-      publish("/results", event: "running", session_id: session_id)
+      @lines << publication[:line] = "1..#{@total}"
     when "result"
       klass = details["result"] ? Pass : Failure
-      record_result(klass.new(details["name"], details["message"]))
+      result = klass.new(details["name"], details["message"])
+      @lines << publication[:line] = result.to_s
     when "end"
-      @status = "finished" unless @failures.any?
+      @status = "finished" unless failures > 0
       @completed = true
-      publish("/results", event: "completed", status: @status, session_id: session_id)
     end
+
+    publication.merge!(status: status, session_id: session_id)
+    publish("/results", publication)
   end
 
   def record_result(result)
-    @results << result
-
     case result
     when Failure
-      @failures << result
+      @failures += 1
       @status = "failed"
-      publish("/results", result: false, session_id: session_id)
     when Pass
-      @passes << result
-      publish("/results", result: true, session_id: session_id)
+      @passes += 1
     end
+
+    result
   end
 
   def total
     if @total
       @total
     elsif @completed
-      results.size
+      passes + failures
     end
   end
 
-  def to_tap
-    lines = results.map(&:to_tap)
-    lines = lines.unshift("1..#{total}") if total
-    lines.join("\n")
+  def to_s
+    lines.join("\n") + "\n"
   end
 
   class Pass
@@ -71,7 +74,7 @@ class BladeRunner::TestResults
       @message = message
     end
 
-    def to_tap(number = nil)
+    def to_s(number = nil)
       ["ok", number, @name, message].compact.join(" ")
     end
 
@@ -83,7 +86,7 @@ class BladeRunner::TestResults
   end
 
   class Failure < Pass
-    def to_tap(*args)
+    def to_s(*args)
       "not #{super}"
     end
   end
@@ -113,11 +116,11 @@ class BladeRunner::TestResults
       passes + failures
     end
 
-    def to_tap
+    def to_s
       lines = []
 
       sorted_results.each_with_index do |result, index|
-        lines << result.to_tap(index + 1)
+        lines << result.to_s(index + 1)
       end
 
       lines = lines.unshift("1..#{total}") if total

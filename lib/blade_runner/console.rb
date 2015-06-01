@@ -19,20 +19,20 @@ class BladeRunner::Console
     init_windows
     handle_keys
 
-    subscribe("/tests") do |details|
+    subscribe("/results") do |details|
       session = sessions[details["session_id"]]
 
-      unless @tabs.detect { |t| t.session_id == session.id }
-        name = "#{session.platform} #{session.browser} #{session.version} (#{session.id})"
-        tab = OpenStruct.new(session_id: session.id, name: name)
-        @tabs << tab
-        activate_tab(@tabs.first) if @tabs.size == 1
-      end
-
-      if @active_tab.session_id == session.id
-        if result = session.test_results.results.last
-          @results_window.addstr(result.to_tap + "\n")
+      if @active_tab && @active_tab.session_id == session.id
+        if line = details["line"]
+          @results_window.addstr(line + "\n")
           @results_window.refresh
+        end
+      else
+        unless @tabs.detect { |t| t.session_id == session.id }
+          name = "#{session.platform} #{session.browser} #{session.version} (#{session.id})"
+          tab = OpenStruct.new(session_id: session.id, name: name)
+          @tabs << tab
+          activate_tab(@tabs.first) if @tabs.size == 1
         end
       end
 
@@ -78,7 +78,7 @@ class BladeRunner::Console
       @tab_y = y
       y += @tab_height + 1
 
-      status_height = 2
+      status_height = 1
       @status_window = @screen.subwin(status_height, 0, y, 1)
       y += status_height + 1
 
@@ -172,12 +172,11 @@ class BladeRunner::Console
       @active_tab = tab
 
       @status_window.clear
-      @status_window.addstr(tab.name + "\n")
-      @status_window.addstr(tab.status)
+      @status_window.addstr(tab.name)
       @status_window.refresh
 
       @results_window.clear
-      @results_window.addstr(sessions[tab.session_id].test_results.to_tap)
+      @results_window.addstr(sessions[tab.session_id].test_results.to_s)
       @results_window.refresh
     end
 
