@@ -20,22 +20,22 @@ class BladeRunner::Console
     handle_keys
 
     subscribe("/tests") do |details|
-      if session = sessions[details["session_id"]]
-        unless @tabs.detect { |t| t.session_id == session.id }
-          tab = OpenStruct.new(session_id: session.id, name: "#{details["browser"]} (#{session.id})")
-          @tabs << tab
-          activate_tab(@tabs.first) if @tabs.size == 1
-        end
+      session = sessions[details["session_id"]]
 
-        if @active_tab.session_id == session.id
-          if result = session.test_results.results.last
-            @results_window.addstr(result.to_tap + "\n")
-            @results_window.refresh
-          end
-        end
-
-        EM.next_tick { draw_tabs }
+      unless @tabs.detect { |t| t.session_id == session.id }
+        tab = OpenStruct.new(session_id: session.id, name: "#{details["browser"]} (#{session.id})")
+        @tabs << tab
+        activate_tab(@tabs.first) if @tabs.size == 1
       end
+
+      if @active_tab.session_id == session.id
+        if result = session.test_results.results.last
+          @results_window.addstr(result.to_tap + "\n")
+          @results_window.refresh
+        end
+      end
+
+      EM.next_tick { draw_tabs }
     end
   end
 
