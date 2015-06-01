@@ -64,7 +64,7 @@ class BladeRunner::Console
       @red = color_pair(COLOR_RED)
 
       y = 0
-      header_height = 2
+      header_height = 3
       @header_window = @screen.subwin(header_height, 0, y, 1)
       @header_window.attron(A_BOLD)
       @header_window.addstr "BLADE RUNNER [press 'q' to quit]\n"
