@@ -28,4 +28,5 @@ Gem::Specification.new do |spec|
   spec.add_dependency "sprockets"
   spec.add_dependency "coffee-script"
   spec.add_dependency "coffee-script-source"
+  spec.add_dependency "useragent"
 end

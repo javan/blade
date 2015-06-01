@@ -1,5 +1,3 @@
-#= require ./bowser
-
 class Blade
   FAYE_URL: "http://localhost:#{window.location.port}/faye"
   CHANNEL: "/tests"
@@ -14,7 +12,6 @@ class Blade
     data = copy(data)
     data.event = event
     data.session_id = @SESSION_ID
-    data.browser = "#{bowser.name} #{bowser.version}"
     @client.publish(@CHANNEL, data)
 
   copy = (object) ->

@@ -1,4 +1,5 @@
 require "faye/websocket"
+require "useragent"
 
 class BladeRunner::Server
   include BladeRunner::Knife
@@ -15,7 +16,9 @@ class BladeRunner::Server
       def call(env)
         case env["PATH_INFO"]
         when "/"
-          [302, { "Location" => "/sessions/#{sessions.create.id}" }, []]
+          ua = UserAgent.parse(env["HTTP_USER_AGENT"])
+          session = sessions.create(browser: ua.browser.to_s, version: ua.version.to_s, platform: ua.platform.to_s)
+          [302, { "Location" => "/sessions/#{session.id}" }, []]
         when /sessions\/\w+/
           env["PATH_INFO"] = "/blade/#{config.framework}.html"
           assets.environment.call(env)

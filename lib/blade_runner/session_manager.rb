@@ -5,14 +5,18 @@ class BladeRunner::SessionManager
     @sessions = {}
   end
 
-  def create
+  def create(attributes = {})
     id = SecureRandom.hex(4)
-    session = OpenStruct.new(id: id, test_results: BladeRunner::TestResults.new(id))
-    @sessions[id] = session
+    test_results = BladeRunner::TestResults.new(id)
+    @sessions[id] = OpenStruct.new(attributes.merge(id: id, test_results: test_results))
   end
 
   def [](id)
     @sessions[id]
+  end
+
+  def all
+    @sessions
   end
 
   def size
