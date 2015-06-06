@@ -2,11 +2,9 @@ class BladeRunner::CI
   include BladeRunner::Knife
 
   def start
-    log "# Running"
-
-    @expected_sessions = config.expected_sessions || 1
     @completed_sessions = 0
 
+    log "# Running"
     subscribe("/results") do |details|
       process_result(details)
     end
@@ -33,7 +31,7 @@ class BladeRunner::CI
     end
 
     def done?
-      @completed_sessions == @expected_sessions
+      @completed_sessions == (config.expected_sessions || 1)
     end
 
     def display_results_and_exit

@@ -33,7 +33,7 @@ class BladeRunner::CombinedTestResults
     end
 
     def totals
-      all_test_results.map(&:total)
+      all_test_results.map(&:total).compact
     end
 
     def statuses
