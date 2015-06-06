@@ -35,7 +35,7 @@ module BladeRunner
     setup_plugins!
 
     EM.run do
-      @runnables.unshift(assets, server, interface)
+      @runnables.unshift(server, interface)
       @runnables.each { |r| r.start if r.respond_to?(:start) }
     end
   end
