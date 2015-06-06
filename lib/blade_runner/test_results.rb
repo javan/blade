@@ -16,8 +16,9 @@ class BladeRunner::TestResults
 
   def reset
     @lines = []
-    @passes = 0
-    @failures = 0
+    @passes = []
+    @failures = []
+    @completed = false
     @status = "pending"
     @total = nil
   end
@@ -32,35 +33,34 @@ class BladeRunner::TestResults
       @total = details["total"]
       @lines << publication[:line] = "1..#{@total}"
     when "result"
-      klass = details["result"] ? Pass : Failure
-      result = klass.new(details["name"], details["message"])
-      @lines << publication[:line] = result.to_s
+      pass = details["result"]
+      args = details.values_at("name", "message")
+
+      if pass
+        line = Pass.new(*args).to_s
+        @passes << line
+      else
+        line = Failure.new(*args).to_s
+        @failures << line
+        @status = "failing"
+      end
+      @lines << line
+
+      publication.merge!(line: line, pass: pass)
     when "end"
-      @status = "finished" unless failures > 0
+      @status = failures.any? ? "failed" : "finished"
       @completed = true
     end
 
-    publication.merge!(status: status, session_id: session_id)
+    publication.merge!(status: status, session_id: session_id, completed: @completed)
     publish("/results", publication)
-  end
-
-  def record_result(result)
-    case result
-    when Failure
-      @failures += 1
-      @status = "failed"
-    when Pass
-      @passes += 1
-    end
-
-    result
   end
 
   def total
     if @total
       @total
     elsif @completed
-      passes + failures
+      passes.size + failures.size
     end
   end
 
@@ -88,43 +88,6 @@ class BladeRunner::TestResults
   class Failure < Pass
     def to_s(*args)
       "not #{super}"
-    end
-  end
-
-  class Combiner
-    attr_reader :all_test_results
-
-    def initialize(all_test_results)
-      @all_test_results = all_test_results
-    end
-
-    def total
-      totals = all_test_results.map(&:total)
-      if totals.all?
-        totals.inject(0) { |sum, total| sum + total }
-      end
-    end
-
-    def sorted_results
-      passes, failures = [], []
-
-      all_test_results.each do |test_results|
-        passes.push(*test_results.passes)
-        failures.push(*test_results.failures)
-      end
-
-      passes + failures
-    end
-
-    def to_s
-      lines = []
-
-      sorted_results.each_with_index do |result, index|
-        lines << result.to_s(index + 1)
-      end
-
-      lines = lines.unshift("1..#{total}") if total
-      lines.join("\n")
     end
   end
 end

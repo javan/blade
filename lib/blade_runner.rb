@@ -11,6 +11,7 @@ require "blade_runner/session_manager"
 require "blade_runner/console"
 require "blade_runner/ci"
 require "blade_runner/test_results"
+require "blade_runner/combined_test_results"
 
 module BladeRunner
   extend self

@@ -29,7 +29,7 @@ class BladeRunner::Console
         end
       else
         unless @tabs.detect { |t| t.session_id == session.id }
-          name = "#{session.platform} #{session.browser} #{session.version} (#{session.id})"
+          name = "#{session} (#{session.id})"
           tab = OpenStruct.new(session_id: session.id, name: name)
           @tabs << tab
           activate_tab(@tabs.first) if @tabs.size == 1
@@ -184,7 +184,7 @@ class BladeRunner::Console
       case status
       when "running"  then @yellow
       when "finished" then @green
-      when "failed"   then @red
+      when /fail/     then @red
       end
     end
 end

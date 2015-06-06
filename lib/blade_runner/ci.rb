@@ -2,40 +2,51 @@ class BladeRunner::CI
   include BladeRunner::Knife
 
   def start
-    @finished_count = 0
+    log "# Running"
 
-    STDERR.puts "# Starting CI with browsers:"
-    browsers.each do |browser|
-      STDERR.puts "# #{browser.name}"
-    end
-    STDERR.print "# "
+    @expected_sessions = config.expected_sessions || 1
+    @completed_sessions = 0
 
     subscribe("/results") do |details|
-      if details.has_key?("result")
-        if details["result"]
-          STDERR.print "."
-        else
-          STDERR.print "F"
-        end
-      end
-
-      if details["event"] == "finished"
-        @finished_count += 1
-      end
-
-      if @finished_count == browsers.size
-        STDERR.puts
-        STDOUT.puts BladeRunner::TestResults::Combiner.new(browsers.map(&:test_results)).to_tap
-        exit(fail? ? 1 : 0)
-      end
+      process_result(details)
     end
-  end
-
-  def stop
   end
 
   private
-    def fail?
-      browsers.map(&:test_results).any? { |r| r.failures.any? }
+    def process_result(details)
+      if details.has_key?("pass")
+        log details["pass"] ? "." : "F"
+      end
+
+      if details["completed"]
+        process_completion
+      end
+    end
+
+    def process_completion
+      @completed_sessions += 1
+
+      if done?
+        log "\n"
+        display_results_and_exit
+      end
+    end
+
+    def done?
+      @completed_sessions == @expected_sessions
+    end
+
+    def display_results_and_exit
+      results = sessions.combined_test_results
+      display results
+      exit results.failed? ? 1 : 0
+    end
+
+    def log(message)
+      STDERR.print message.to_s
+    end
+
+    def display(message)
+      STDOUT.puts message.to_s
     end
 end

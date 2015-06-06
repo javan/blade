@@ -32,8 +32,8 @@ class BladeRunner::Server
       def call(env)
         case env["PATH_INFO"]
         when "/"
-          ua = UserAgent.parse(env["HTTP_USER_AGENT"])
-          session = sessions.create(browser: ua.browser.to_s, version: ua.version.to_s, platform: ua.platform.to_s)
+          user_agent = UserAgent.parse(env["HTTP_USER_AGENT"])
+          session = sessions.create(user_agent)
           [302, { "Location" => "/sessions/#{session.id}" }, []]
         when /sessions\/\w+/
           env["PATH_INFO"] = "/blade/#{config.framework}.html"
