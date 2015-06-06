@@ -2,7 +2,6 @@
 
 require "blade_runner"
 require "yaml"
-require "optparse"
 
 options = {}
 
@@ -11,16 +10,8 @@ if File.exists?(filename)
   options = YAML.load_file(filename)
 end
 
-OptionParser.new do |opts|
-  opts.banner = "Blade Runner"
-
-  opts.on("-f", "--filter pattern", Regexp, "Filter browser names") do |pattern|
-    options[:filter] = pattern
-  end
-
-  opts.on("-CI", "Run in CI mode") do
-    options[:mode] = :ci
-  end
-end.parse!
+if mode = ARGV[0]
+  options[:mode] = mode.to_sym
+end
 
 BladeRunner.start(options)
