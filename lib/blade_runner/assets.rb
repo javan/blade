@@ -45,8 +45,14 @@ class BladeRunner::Assets
     def get_mtimes
       {}.tap do |mtimes|
         config.logical_paths.each do |path|
-          mtimes[path] = environment[path].mtime
+          mtimes[path] = get_mtime(path)
         end
       end
+    end
+
+    def get_mtime(logical_path)
+      environment[logical_path].mtime
+    rescue Exception => e
+      e.to_s
     end
 end
