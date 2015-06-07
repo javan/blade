@@ -51,18 +51,6 @@ module BladeRunner
     "http://localhost:#{config.port}#{path}"
   end
 
-  def lib_path
-    Pathname.new(File.dirname(__FILE__))
-  end
-
-  def root_path
-    lib_path.join("../")
-  end
-
-  def tmp_path
-    root_path.join("tmp")
-  end
-
   def assets
     @assets ||= Assets.new
   end
@@ -87,12 +75,15 @@ module BladeRunner
       end
   end
 
-  private
-    def clean
-      FileUtils.rm_rf(tmp_path)
-      FileUtils.mkdir_p(tmp_path)
-    end
+  def root_path
+    Pathname.new(File.dirname(__FILE__)).join("../")
+  end
 
+  def tmp_path
+    Pathname.new(".").join("tmp/blade_runner")
+  end
+
+  private
     def handle_exit
       %w( INT ).each do |signal|
         trap(signal) { stop }
