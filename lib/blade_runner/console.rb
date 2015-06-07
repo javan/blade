@@ -6,7 +6,7 @@ class BladeRunner::Console
 
   def start
     run
-    assets.watch_test_scripts_for_changes
+    assets.watch_logical_paths
   end
 
   def stop

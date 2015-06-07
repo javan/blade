@@ -7,7 +7,7 @@ class BladeRunner::Assets
     @environment ||= Sprockets::Environment.new do |env|
       env.cache = Sprockets::Cache::FileStore.new(tmp_path)
 
-      asset_paths.each do |path|
+      load_paths.each do |path|
         env.append_path(path)
       end
 
@@ -17,19 +17,19 @@ class BladeRunner::Assets
     end
   end
 
-  def asset_paths
-    local_asset_paths + remote_asset_paths
+  def load_paths
+    local_load_paths + remote_load_paths
   end
 
-  def local_asset_paths
+  def local_load_paths
     %w( assets ).map { |a| root_path.join(a) }
   end
 
-  def remote_asset_paths
-    config.asset_paths.map { |a| Pathname.new(a) }
+  def remote_load_paths
+    config.load_paths.map { |a| Pathname.new(a) }
   end
 
-  def watch_test_scripts_for_changes
+  def watch_logical_paths
     @mtimes = get_mtimes
 
     EM.add_periodic_timer(1) do
@@ -44,8 +44,8 @@ class BladeRunner::Assets
   private
     def get_mtimes
       {}.tap do |mtimes|
-        config.test_scripts.each do |script|
-          mtimes[script] = environment[script].mtime
+        config.logical_paths.each do |path|
+          mtimes[path] = environment[path].mtime
         end
       end
     end

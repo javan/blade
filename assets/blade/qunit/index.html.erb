@@ -10,8 +10,10 @@
   <script src="/blade.js"></script>
   <script src="/blade/qunit.js"></script>
 
-  <% BladeRunner.config.test_scripts.each do |script| %>
-    <script src="/<%= script %>"></script>
+  <% BladeRunner.config.logical_paths.each do |path| %>
+    <% if File.extname(path) == ".js" %>
+      <script src="/<%= path %>"></script>
+    <% end %>
   <% end %>
 </head>
 <body>

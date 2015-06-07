@@ -106,8 +106,8 @@ module BladeRunner
       end
 
       options[:port] ||= DEFAULT_PORT
-      options[:asset_paths] = Array(options[:asset_paths])
-      options[:test_scripts] = Array(options[:test_scripts])
+      options[:load_paths] = Array(options[:load_paths])
+      options[:logical_paths] = Array(options[:logical_paths])
 
       @config = OpenStruct.new(options)
     end
