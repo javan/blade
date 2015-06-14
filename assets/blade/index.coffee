@@ -7,6 +7,10 @@ class Blade
     @client.subscribe "/assets", (data) ->
       window.location.reload() if data.changed
 
+    setInterval =>
+      @client.publish("/browsers", message: "ping", session_id: @SESSION_ID)
+    , 1000
+
   publish: (event, data = {}) ->
     data = copy(data)
     data.event = event

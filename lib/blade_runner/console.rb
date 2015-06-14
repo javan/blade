@@ -19,6 +19,7 @@ class BladeRunner::Console
     start_screen
     init_windows
     handle_keys
+    handle_stale_tabs
 
     subscribe("/results") do |details|
       session = sessions[details["session_id"]]
@@ -105,6 +106,25 @@ class BladeRunner::Console
       end
     end
 
+    def handle_stale_tabs
+      subscribe("/browsers") do |details|
+        if details["message"] = "ping"
+          if tab = @tabs.detect { |t| t.session_id == details["session_id"] }
+            tab.last_ping_at = Time.now
+          end
+        end
+      end
+
+      EM.add_periodic_timer(1) do
+        stale_tabs.each { |t| remove_tab(t) }
+      end
+    end
+
+    def stale_tabs
+      stale_threshold = Time.now - 2
+      @tabs.select { |t| t.last_ping_at && t.last_ping_at < stale_threshold }
+    end
+
     def change_tab(direction = :next)
       index = @tabs.index(@tabs.detect(&:active))
       tabs = @tabs.rotate(index)
@@ -112,8 +132,8 @@ class BladeRunner::Console
       activate_tab(tab)
     end
 
-    def draw_tabs
-      return unless tabs_need_redraw?
+    def draw_tabs(force = false)
+      return unless force || tabs_need_redraw?
 
       # Horizontal line
       @screen.setpos(@tab_y + 2, 0)
@@ -179,6 +199,25 @@ class BladeRunner::Console
       @results_window.clear
       @results_window.addstr(sessions[tab.session_id].test_results.to_s)
       @results_window.refresh
+    end
+
+    def remove_tab(tab)
+      @tabs.delete(tab)
+
+      tab.window.clear
+      tab.window.close
+
+      if tab == @active_tab
+        @status_window.clear
+        @status_window.refresh
+
+        @results_window.clear
+        @results_window.refresh
+
+        @active_tab = nil
+      end
+
+      draw_tabs(:force)
     end
 
     def color_for_status(status)
