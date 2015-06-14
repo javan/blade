@@ -4,6 +4,47 @@ class BladeRunner::Console
   include BladeRunner::Knife
   include Curses
 
+  class Tab < OpenStruct
+    @tabs = {}
+
+    class << self
+      attr_accessor :tabs
+
+      def create(attributes)
+        tabs[attributes[:id]] = new attributes
+      end
+
+      def remove(id)
+        tabs.delete(id)
+      end
+
+      def find(id)
+        tabs[id]
+      end
+
+      def all
+        tabs.values
+      end
+
+      def size
+        tabs.size
+      end
+
+      def active
+        all.detect(&:active?)
+      end
+
+      def stale
+        stale_threshold = Time.now - 2
+        all.select { |t| t.last_ping_at && t.last_ping_at < stale_threshold }
+      end
+    end
+
+    def active?
+      active
+    end
+  end
+
   def start
     run
     assets.watch_logical_paths
@@ -14,8 +55,6 @@ class BladeRunner::Console
   end
 
   def run
-    @tabs = []
-
     start_screen
     init_windows
     handle_keys
@@ -24,18 +63,14 @@ class BladeRunner::Console
     subscribe("/results") do |details|
       session = sessions[details["session_id"]]
 
-      if @active_tab && @active_tab.session_id == session.id
-        if line = details["line"]
-          @results_window.addstr(line + "\n")
+      if tab = Tab.find(session.id)
+        if details["line"] && tab.active?
+          @results_window.addstr(details["line"] + "\n")
           @results_window.refresh
         end
       else
-        unless @tabs.detect { |t| t.session_id == session.id }
-          name = "#{session} (#{session.id})"
-          tab = OpenStruct.new(session_id: session.id, name: name)
-          @tabs << tab
-          activate_tab(@tabs.first) if @tabs.size == 1
-        end
+        tab = Tab.create(id: session.id, name: "#{session} (#{session.id})")
+        activate_tab(tab) if Tab.size == 1
       end
 
       EM.next_tick { draw_tabs }
@@ -109,25 +144,21 @@ class BladeRunner::Console
     def handle_stale_tabs
       subscribe("/browsers") do |details|
         if details["message"] = "ping"
-          if tab = @tabs.detect { |t| t.session_id == details["session_id"] }
+          if tab = Tab.find(details["session_id"])
             tab.last_ping_at = Time.now
           end
         end
       end
 
       EM.add_periodic_timer(1) do
-        stale_tabs.each { |t| remove_tab(t) }
+        Tab.stale.each { |t| remove_tab(t) }
       end
     end
 
-    def stale_tabs
-      stale_threshold = Time.now - 2
-      @tabs.select { |t| t.last_ping_at && t.last_ping_at < stale_threshold }
-    end
-
     def change_tab(direction = :next)
-      index = @tabs.index(@tabs.detect(&:active))
-      tabs = @tabs.rotate(index)
+      tabs = Tab.all
+      index = tabs.index(Tab.active)
+      tabs = tabs.rotate(index)
       tab = direction == :next ? tabs[1] : tabs.last
       activate_tab(tab)
     end
@@ -140,12 +171,12 @@ class BladeRunner::Console
       @screen.addstr("═" * @screen.maxx)
 
       tab_x = 1
-      @tabs.each do |tab|
-        tab.status = sessions[tab.session_id].test_results.status
+      Tab.all.each do |tab|
+        tab.status = sessions[tab.id].test_results.status
 
         if tab.window
           tab.window.clear rescue nil
-          tab.window.close
+          tab.window.close rescue nil
           tab.window = nil
         end
 
@@ -180,14 +211,14 @@ class BladeRunner::Console
     end
 
     def tabs_need_redraw?
-      if @tabs.any?
-        (@active_tab.nil? || @active_tab != @tabs.detect(&:active)) ||
-          @tabs.any? { |tab| tab.status != sessions[tab.session_id].test_results.status }
+      if Tab.size > 0
+        (@active_tab.nil? || @active_tab != Tab.active) ||
+          Tab.all.any? { |tab| tab.status != sessions[tab.id].test_results.status }
       end
     end
 
     def activate_tab(tab)
-      @tabs.each { |t| t.active = false }
+      Tab.all.each { |t| t.active = false }
       tab.active = true
       draw_tabs
       @active_tab = tab
@@ -197,12 +228,12 @@ class BladeRunner::Console
       @status_window.refresh
 
       @results_window.clear
-      @results_window.addstr(sessions[tab.session_id].test_results.to_s)
+      @results_window.addstr(sessions[tab.id].test_results.to_s)
       @results_window.refresh
     end
 
     def remove_tab(tab)
-      @tabs.delete(tab)
+      Tab.remove(tab.id)
 
       tab.window.clear
       tab.window.close
