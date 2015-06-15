@@ -4,22 +4,66 @@ class BladeRunner::Console
   include BladeRunner::Knife
   include Curses
 
+  COLOR_NAMES = %w( white yellow green red )
+
+  def self.colors
+    @colors ||= OpenStruct.new.tap do |colors|
+      COLOR_NAMES.each do |name|
+        const = Curses.const_get("COLOR_#{name.upcase}")
+        Curses.init_pair(const, const, Curses::COLOR_BLACK)
+        colors[name] = Curses.color_pair(const)
+      end
+    end
+  end
+
   class Tab < OpenStruct
+    extend Forwardable
+    def_delegators "BladeRunner::Console", :colors
+
     @tabs = {}
 
     class << self
       attr_accessor :tabs
+      attr_reader :window
+
+      def init_windows(parent_window, height, width, top, left)
+        @top = top
+        @left = left
+        @window = parent_window.subwin(height, width, top, left)
+      end
+
+      def draw
+        window.clear
+        window.noutrefresh
+
+        all.each_with_index do |tab, index|
+          left = index * 5 + @left
+          tab.window.move(@top, left)
+          tab.draw
+        end
+      end
 
       def create(attributes)
-        tabs[attributes[:id]] = new attributes
+        left = size * 5 + @left
+        tab_window = window.subwin(3, 5, @top, left)
+        tabs[attributes[:id]] = new attributes, tab_window
       end
 
       def remove(id)
+        find(id).window.close
         tabs.delete(id)
+        draw
       end
 
       def find(id)
         tabs[id]
+      end
+
+      def activate(id)
+        all.each do |tab|
+          tab.active = (tab.id == id)
+          tab.draw
+        end
       end
 
       def all
@@ -35,13 +79,62 @@ class BladeRunner::Console
       end
 
       def stale
-        stale_threshold = Time.now - 2
-        all.select { |t| t.last_ping_at && t.last_ping_at < stale_threshold }
+        threshold = Time.now - 2
+        all.select { |t| t.last_ping_at && t.last_ping_at < threshold }
       end
+    end
+
+    attr_reader :window
+
+    def initialize(attributes, window)
+      super(attributes)
+      @window = window
+      draw
+    end
+
+    def draw
+      window.clear
+      active? ? draw_active : draw_inactive
+      window.noutrefresh
+    end
+
+    def draw_active
+      window.addstr "╔═══╗"
+      window.addstr "║ "
+      window.attron(color)
+      window.addstr(dot)
+      window.attroff(color)
+      window.addstr(" ║")
+      window.addstr "╝   ╚"
+    end
+
+    def draw_inactive
+      window.addstr "\n"
+      window.attron(color)
+      window.addstr("  #{dot}\n")
+      window.attroff(color)
+      window.addstr "═════"
+    end
+
+    def dot
+      status == "pending" ? "○" : "●"
     end
 
     def active?
       active
+    end
+
+    def status
+      BladeRunner.sessions[id].test_results.status
+    end
+
+    def color
+      case status
+      when "running"  then colors.yellow
+      when "finished" then colors.green
+      when /fail/     then colors.red
+      else                 colors.white
+      end
     end
   end
 
@@ -66,14 +159,15 @@ class BladeRunner::Console
       if tab = Tab.find(session.id)
         if details["line"] && tab.active?
           @results_window.addstr(details["line"] + "\n")
-          @results_window.refresh
+          @results_window.noutrefresh
         end
       else
         tab = Tab.create(id: session.id, name: "#{session} (#{session.id})")
         activate_tab(tab) if Tab.size == 1
       end
 
-      EM.next_tick { draw_tabs }
+      tab.draw
+      doupdate
     end
   end
 
@@ -85,22 +179,9 @@ class BladeRunner::Console
       curs_set(0)
       @screen = stdscr
       @screen.keypad(true)
-      refresh
     end
 
     def init_windows
-      init_pair(COLOR_WHITE,COLOR_WHITE,COLOR_BLACK)
-      @white = color_pair(COLOR_WHITE)
-
-      init_pair(COLOR_YELLOW,COLOR_YELLOW,COLOR_BLACK)
-      @yellow = color_pair(COLOR_YELLOW)
-
-      init_pair(COLOR_GREEN,COLOR_GREEN,COLOR_BLACK)
-      @green = color_pair(COLOR_GREEN)
-
-      init_pair(COLOR_RED,COLOR_RED,COLOR_BLACK)
-      @red = color_pair(COLOR_RED)
-
       y = 0
       header_height = 3
       @header_window = @screen.subwin(header_height, 0, y, 1)
@@ -108,11 +189,13 @@ class BladeRunner::Console
       @header_window.addstr "BLADE RUNNER [press 'q' to quit]\n"
       @header_window.attroff(A_BOLD)
       @header_window.addstr "Open #{blade_url} to start"
-      @header_window.refresh
+      @header_window.noutrefresh
       y += header_height
 
       @tab_height = 3
       @tab_y = y
+
+      Tab.init_windows(@screen, @tab_height, 0, @tab_y, 1)
       y += @tab_height + 1
 
       status_height = 1
@@ -123,7 +206,7 @@ class BladeRunner::Console
       @results_window = @screen.subwin(results_height, 0, y, 1)
       @results_window.scrollok(true)
 
-      @screen.refresh
+      doupdate
     end
 
     def handle_keys
@@ -163,99 +246,31 @@ class BladeRunner::Console
       activate_tab(tab)
     end
 
-    def draw_tabs(force = false)
-      return unless force || tabs_need_redraw?
-
-      # Horizontal line
-      @screen.setpos(@tab_y + 2, 0)
-      @screen.addstr("═" * @screen.maxx)
-
-      tab_x = 1
-      Tab.all.each do |tab|
-        tab.status = sessions[tab.id].test_results.status
-
-        if tab.window
-          tab.window.clear rescue nil
-          tab.window.close rescue nil
-          tab.window = nil
-        end
-
-        width = 5
-        window = @screen.subwin(@tab_height, width, @tab_y, tab_x)
-        tab.window = window
-
-        dot = tab.status == "pending" ? "○" : "●"
-        color = color_for_status(tab.status)
-
-        if tab.active
-          window.addstr "╔═══╗"
-          window.addstr "║ "
-          window.attron(color) if color
-          window.addstr(dot)
-          window.attroff(color) if color
-          window.addstr(" ║")
-          window.addstr "╝   ╚"
-        else
-          window.addstr "\n"
-          window.attron(color) if color
-          window.addstr("  #{dot}\n")
-          window.attroff(color) if color
-          window.addstr "═════"
-        end
-
-        window.refresh
-        tab_x += width
-      end
-
-      @screen.refresh
-    end
-
-    def tabs_need_redraw?
-      if Tab.size > 0
-        (@active_tab.nil? || @active_tab != Tab.active) ||
-          Tab.all.any? { |tab| tab.status != sessions[tab.id].test_results.status }
-      end
-    end
-
     def activate_tab(tab)
-      Tab.all.each { |t| t.active = false }
-      tab.active = true
-      draw_tabs
-      @active_tab = tab
+      Tab.activate(tab.id)
 
       @status_window.clear
       @status_window.addstr(tab.name)
-      @status_window.refresh
+      @status_window.noutrefresh
 
       @results_window.clear
       @results_window.addstr(sessions[tab.id].test_results.to_s)
-      @results_window.refresh
+      @results_window.noutrefresh
+
+      doupdate
     end
 
     def remove_tab(tab)
       Tab.remove(tab.id)
 
-      tab.window.clear
-      tab.window.close
-
-      if tab == @active_tab
+      if tab.active?
         @status_window.clear
-        @status_window.refresh
+        @status_window.noutrefresh
 
         @results_window.clear
-        @results_window.refresh
-
-        @active_tab = nil
+        @results_window.noutrefresh
       end
 
-      draw_tabs(:force)
-    end
-
-    def color_for_status(status)
-      case status
-      when "running"  then @yellow
-      when "finished" then @green
-      when /fail/     then @red
-      end
+      doupdate
     end
 end
