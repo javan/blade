@@ -4,7 +4,11 @@ class BladeRunner::Console
   include BladeRunner::Knife
   include Curses
 
+  extend Forwardable
+  def_delegators "BladeRunner::Console", :create_window
+
   COLOR_NAMES = %w( white yellow green red )
+  PADDING = 1
 
   def self.colors
     @colors ||= OpenStruct.new.tap do |colors|
@@ -16,54 +20,61 @@ class BladeRunner::Console
     end
   end
 
+  def self.create_window(options = {})
+    height = options[:height] || 0
+    width  = options[:width]  || 0
+    top    = options[:top]    || 0
+    left   = options[:left]   || PADDING
+    parent = options[:parent] || Curses.stdscr
+
+    parent.subwin(height, width, top, left)
+  end
+
   class Tab < OpenStruct
     extend Forwardable
-    def_delegators "BladeRunner::Console", :colors
+    def_delegators "BladeRunner::Console", :colors, :create_window
 
     @tabs = {}
 
     class << self
-      attr_accessor :tabs
-      attr_reader :window
+      extend Forwardable
+      def_delegators "BladeRunner::Console", :create_window
 
-      def init_windows(parent_window, height, width, top, left)
-        @top = top
-        @left = left
-        @window = parent_window.subwin(height, width, top, left)
+      attr_accessor :tabs
+      attr_reader :window, :status_window, :content_window
+
+      def install(options = {})
+        top = options[:top]
+        @window = create_window(top: top, height: 3)
+
+        top = @window.begy + @window.maxy + 1
+        @status_window = create_window(top: top, height: 1)
+
+        top = @status_window.begy + @status_window.maxy + 1
+        @content_window = create_window(top: top)
+        @content_window.scrollok(true)
       end
 
       def draw
         window.clear
         window.noutrefresh
-
-        all.each_with_index do |tab, index|
-          left = index * 5 + @left
-          tab.window.move(@top, left)
-          tab.draw
-        end
+        all.each(&:draw)
       end
 
       def create(attributes)
-        left = size * 5 + @left
-        tab_window = window.subwin(3, 5, @top, left)
-        tabs[attributes[:id]] = new attributes, tab_window
+        tabs[attributes[:id]] = new attributes
       end
 
       def remove(id)
-        find(id).window.close
+        tab = find(id)
+        tab.deactivate
+        tab.window.close
         tabs.delete(id)
         draw
       end
 
       def find(id)
         tabs[id]
-      end
-
-      def activate(id)
-        all.each do |tab|
-          tab.active = (tab.id == id)
-          tab.draw
-        end
       end
 
       def all
@@ -84,12 +95,24 @@ class BladeRunner::Console
       end
     end
 
-    attr_reader :window
+    def height
+      3
+    end
 
-    def initialize(attributes, window)
-      super(attributes)
-      @window = window
-      draw
+    def width
+      5
+    end
+
+    def top
+      Tab.window.begy
+    end
+
+    def left
+      Tab.window.begx + index * width
+    end
+
+    def window
+      @window ||= create_window(height: height, width: width, top: top, left: left)
     end
 
     def draw
@@ -120,12 +143,70 @@ class BladeRunner::Console
       status == "pending" ? "○" : "●"
     end
 
+    def index
+      Tab.all.index(self)
+    end
+
+    def session
+      BladeRunner.sessions[id]
+    end
+
+    def status
+      session.test_results.status
+    end
+
     def active?
       active
     end
 
-    def status
-      BladeRunner.sessions[id].test_results.status
+    def activate
+      return if active?
+
+      if tab = Tab.active
+        tab.deactivate
+      end
+
+      self.active = true
+      draw
+
+      Tab.status_window.addstr(session.to_s)
+      Tab.status_window.noutrefresh
+
+      Tab.content_window.addstr(session.test_results.to_s)
+      Tab.content_window.noutrefresh
+    end
+
+    def deactivate
+      return unless active?
+
+      self.active = false
+      draw
+
+      Tab.status_window.clear
+      Tab.status_window.noutrefresh
+
+      Tab.content_window.clear
+      Tab.content_window.noutrefresh
+    end
+
+    def activate_next
+      tabs = Tab.all
+
+      if tabs.last == self
+        tabs.first.activate
+      elsif tab = tabs[index + 1]
+        tab.activate
+      end
+    end
+
+    def activate_previous
+      tabs = Tab.all
+
+      if tabs.first == self
+        tabs.last.activate
+      elsif tab = tabs[index - 1]
+        tab.activate
+      end
     end
 
     def color
@@ -158,15 +239,15 @@ class BladeRunner::Console
 
       if tab = Tab.find(session.id)
         if details["line"] && tab.active?
-          @results_window.addstr(details["line"] + "\n")
-          @results_window.noutrefresh
+          Tab.content_window.addstr(details["line"] + "\n")
+          Tab.content_window.noutrefresh
         end
+        tab.draw
       else
-        tab = Tab.create(id: session.id, name: "#{session} (#{session.id})")
-        activate_tab(tab) if Tab.size == 1
+        tab = Tab.create(id: session.id)
+        tab.activate if Tab.size == 1
       end
 
-      tab.draw
       doupdate
     end
   end
@@ -177,34 +258,18 @@ class BladeRunner::Console
       start_color
       noecho
       curs_set(0)
-      @screen = stdscr
-      @screen.keypad(true)
+      stdscr.keypad(true)
     end
 
     def init_windows
-      y = 0
-      header_height = 3
-      @header_window = @screen.subwin(header_height, 0, y, 1)
-      @header_window.attron(A_BOLD)
-      @header_window.addstr "BLADE RUNNER [press 'q' to quit]\n"
-      @header_window.attroff(A_BOLD)
-      @header_window.addstr "Open #{blade_url} to start"
-      @header_window.noutrefresh
-      y += header_height
+      header_window = create_window(height: 3)
+      header_window.attron(A_BOLD)
+      header_window.addstr "BLADE RUNNER [press 'q' to quit]\n"
+      header_window.attroff(A_BOLD)
+      header_window.addstr "Open #{blade_url} to start"
+      header_window.noutrefresh
 
-      @tab_height = 3
-      @tab_y = y
-
-      Tab.init_windows(@screen, @tab_height, 0, @tab_y, 1)
-      y += @tab_height + 1
-
-      status_height = 1
-      @status_window = @screen.subwin(status_height, 0, y, 1)
-      y += status_height + 1
-
-      results_height = @screen.maxy - y
-      @results_window = @screen.subwin(results_height, 0, y, 1)
-      @results_window.scrollok(true)
+      Tab.install(top: header_window.maxy)
 
       doupdate
     end
@@ -214,9 +279,11 @@ class BladeRunner::Console
         while ch = getch
           case ch
           when KEY_LEFT
-            change_tab(:previous)
+            Tab.active.activate_previous
+            doupdate
           when KEY_RIGHT
-            change_tab(:next)
+            Tab.active.activate_next
+            doupdate
           when "q"
             BladeRunner.stop
           end
@@ -238,39 +305,8 @@ class BladeRunner::Console
       end
     end
 
-    def change_tab(direction = :next)
-      tabs = Tab.all
-      index = tabs.index(Tab.active)
-      tabs = tabs.rotate(index)
-      tab = direction == :next ? tabs[1] : tabs.last
-      activate_tab(tab)
-    end
-
-    def activate_tab(tab)
-      Tab.activate(tab.id)
-
-      @status_window.clear
-      @status_window.addstr(tab.name)
-      @status_window.noutrefresh
-
-      @results_window.clear
-      @results_window.addstr(sessions[tab.id].test_results.to_s)
-      @results_window.noutrefresh
-
-      doupdate
-    end
-
     def remove_tab(tab)
       Tab.remove(tab.id)
-
-      if tab.active?
-        @status_window.clear
-        @status_window.noutrefresh
-
-        @results_window.clear
-        @results_window.noutrefresh
-      end
-
       doupdate
     end
 end
