@@ -1,5 +1,6 @@
-class BladeRunner::CI
-  include BladeRunner::Knife
+module BladeRunner::CI
+  extend self
+  extend BladeRunner::Knife
 
   def start
     @completed_sessions = 0

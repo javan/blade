@@ -52,11 +52,11 @@ module BladeRunner
   end
 
   def assets
-    @assets ||= Assets.new
+    Assets
   end
 
   def server
-    @server ||= Server.new
+    Server
   end
 
   def client
@@ -64,14 +64,14 @@ module BladeRunner
   end
 
   def sessions
-    @session ||= SessionManager.new
+    SessionManager
   end
 
   def interface
     @interface ||=
       case config.mode
-      when :ci then CI.new
-      when :console then Console.new
+      when :ci then CI
+      when :console then Console
       end
   end
 

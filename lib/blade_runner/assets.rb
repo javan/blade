@@ -1,7 +1,8 @@
 require "sprockets"
 
-class BladeRunner::Assets
-  include BladeRunner::Knife
+module BladeRunner::Assets
+  extend self
+  extend BladeRunner::Knife
 
   def environment
     @environment ||= Sprockets::Environment.new do |env|

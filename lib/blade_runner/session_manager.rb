@@ -1,6 +1,10 @@
 require "securerandom"
 
-class BladeRunner::SessionManager
+module BladeRunner::SessionManager
+  extend self
+
+  @sessions = {}
+
   class Session < OpenStruct
     def to_s
       @to_s ||= "#{ua.browser} #{ua.version} #{ua.platform}"
@@ -10,10 +14,6 @@ class BladeRunner::SessionManager
       def ua
         user_agent
       end
-  end
-
-  def initialize
-    @sessions = {}
   end
 
   def create(user_agent)

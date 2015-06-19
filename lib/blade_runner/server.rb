@@ -1,8 +1,9 @@
 require "faye/websocket"
 require "useragent"
 
-class BladeRunner::Server
-  include BladeRunner::Knife
+module BladeRunner::Server
+  extend self
+  extend BladeRunner::Knife
 
   WEBSOCKET_PATH = "/blade/websocket"
 

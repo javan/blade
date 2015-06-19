@@ -1,8 +1,8 @@
 require "curses"
 
-class BladeRunner::Console
-  include BladeRunner::Knife
-  include Curses
+module BladeRunner::Console
+  extend self
+  extend BladeRunner::Knife
 
   extend Forwardable
   def_delegators "BladeRunner::Console", :create_window
@@ -10,7 +10,7 @@ class BladeRunner::Console
   COLOR_NAMES = %w( white yellow green red )
   PADDING = 1
 
-  def self.colors
+  def colors
     @colors ||= OpenStruct.new.tap do |colors|
       COLOR_NAMES.each do |name|
         const = Curses.const_get("COLOR_#{name.upcase}")
@@ -20,7 +20,7 @@ class BladeRunner::Console
     end
   end
 
-  def self.create_window(options = {})
+  def create_window(options = {})
     height = options[:height] || 0
     width  = options[:width]  || 0
     top    = options[:top]    || 0
@@ -225,7 +225,7 @@ class BladeRunner::Console
   end
 
   def stop
-    close_screen
+    Curses.close_screen
   end
 
   def run
@@ -248,42 +248,42 @@ class BladeRunner::Console
         tab.activate if Tab.size == 1
       end
 
-      doupdate
+      Curses.doupdate
     end
   end
 
   private
     def start_screen
-      init_screen
-      start_color
-      noecho
-      curs_set(0)
-      stdscr.keypad(true)
+      Curses.init_screen
+      Curses.start_color
+      Curses.noecho
+      Curses.curs_set(0)
+      Curses.stdscr.keypad(true)
     end
 
     def init_windows
       header_window = create_window(height: 3)
-      header_window.attron(A_BOLD)
+      header_window.attron(Curses::A_BOLD)
       header_window.addstr "BLADE RUNNER [press 'q' to quit]\n"
-      header_window.attroff(A_BOLD)
+      header_window.attroff(Curses::A_BOLD)
       header_window.addstr "Open #{blade_url} to start"
       header_window.noutrefresh
 
       Tab.install(top: header_window.maxy)
 
-      doupdate
+      Curses.doupdate
     end
 
     def handle_keys
       EM.defer do
-        while ch = getch
+        while ch = Curses.getch
           case ch
-          when KEY_LEFT
+          when Curses::KEY_LEFT
             Tab.active.activate_previous
-            doupdate
-          when KEY_RIGHT
+            Curses.doupdate
+          when Curses::KEY_RIGHT
             Tab.active.activate_next
-            doupdate
+            Curses.doupdate
           when "q"
             BladeRunner.stop
           end
@@ -307,6 +307,6 @@ class BladeRunner::Console
 
     def remove_tab(tab)
       Tab.remove(tab.id)
-      doupdate
+      Curses.doupdate
     end
 end
