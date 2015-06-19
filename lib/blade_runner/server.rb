@@ -3,6 +3,7 @@ require "useragent"
 
 module BladeRunner::Server
   extend self
+  include BladeRunner::Component
   extend BladeRunner::Knife
 
   WEBSOCKET_PATH = "/blade/websocket"

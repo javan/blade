@@ -1,3 +1,5 @@
+require "blade_runner/version"
+
 require "eventmachine"
 require "faye"
 require "pathname"
@@ -6,18 +8,25 @@ require "ostruct"
 require "active_support/core_ext/string/inflections"
 require "active_support/core_ext/hash"
 
-require "blade_runner/version"
-require "blade_runner/concerns/knife"
-require "blade_runner/assets"
-require "blade_runner/server"
-require "blade_runner/session_manager"
-require "blade_runner/console"
-require "blade_runner/ci"
-require "blade_runner/test_results"
-require "blade_runner/combined_test_results"
-
 module BladeRunner
   extend self
+
+  @components = []
+
+  def register_component(component)
+    @components << component
+  end
+
+  require "blade_runner/concerns/component"
+  require "blade_runner/concerns/knife"
+  require "blade_runner/server"
+
+  autoload :Assets, "blade_runner/assets"
+  autoload :SessionManager, "blade_runner/session_manager"
+  autoload :TestResults, "blade_runner/test_results"
+  autoload :CombinedTestResults, "blade_runner/combined_test_results"
+  autoload :Console, "blade_runner/console"
+  autoload :CI, "blade_runner/ci"
 
   ALLOWED_MODES = [:console, :ci]
 
@@ -28,22 +37,21 @@ module BladeRunner
 
   def start(options = {})
     @options = options.with_indifferent_access
-    @runnables = []
 
     handle_exit
     setup_config!
     setup_plugins!
+    interface
 
     EM.run do
-      @runnables.unshift(server, interface)
-      @runnables.each { |r| r.start if r.respond_to?(:start) }
+      @components.each { |c| c.start if c.respond_to?(:start) }
     end
   end
 
   def stop
     return if @stopping
     @stopping = true
-    @runnables.each { |r| r.stop if r.respond_to?(:stop) }
+    @components.each { |c| c.stop if c.respond_to?(:stop) }
     EM.stop if EM.reactor_running?
   end
 

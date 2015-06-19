@@ -2,6 +2,7 @@ require "curses"
 
 module BladeRunner::Console
   extend self
+  include BladeRunner::Component
   extend BladeRunner::Knife
 
   extend Forwardable
