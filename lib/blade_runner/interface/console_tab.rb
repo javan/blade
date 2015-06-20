@@ -1,14 +1,11 @@
-class BladeRunner::Console::Tab < OpenStruct
+class BladeRunner::Console::Tab < BladeRunner::Model
   extend Forwardable
   def_delegators "BladeRunner::Console", :colors, :create_window
-
-  @tabs = {}
 
   class << self
     extend Forwardable
     def_delegators "BladeRunner::Console", :create_window
 
-    attr_accessor :tabs
     attr_reader :window, :status_window, :content_window
 
     def install(options = {})
@@ -29,28 +26,12 @@ class BladeRunner::Console::Tab < OpenStruct
       all.each(&:draw)
     end
 
-    def create(attributes)
-      tabs[attributes[:id]] = new attributes
-    end
-
     def remove(id)
       tab = find(id)
       tab.deactivate
       tab.window.close
-      tabs.delete(id)
+      super
       draw
-    end
-
-    def find(id)
-      tabs[id]
-    end
-
-    def all
-      tabs.values
-    end
-
-    def size
-      tabs.size
     end
 
     def active
@@ -120,7 +101,7 @@ class BladeRunner::Console::Tab < OpenStruct
   end
 
   def session
-    BR::SessionManager[id]
+    BR::Session.find(id)
   end
 
   def status

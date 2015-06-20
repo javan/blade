@@ -32,7 +32,7 @@ module BladeRunner::Server
         case env["PATH_INFO"]
         when "/"
           user_agent = UserAgent.parse(env["HTTP_USER_AGENT"])
-          session = BR::SessionManager.create(user_agent)
+          session = BR::Session.create(user_agent: user_agent)
           [302, { "Location" => "/sessions/#{session.id}" }, []]
         when /sessions\/\w+/
           env["PATH_INFO"] = "/blade/#{BR.config.framework}.html"

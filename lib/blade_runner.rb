@@ -20,8 +20,9 @@ module BladeRunner
   require "blade_runner/component"
   require "blade_runner/server"
 
+  autoload :Model, "blade_runner/model"
   autoload :Assets, "blade_runner/assets"
-  autoload :SessionManager, "blade_runner/session_manager"
+  autoload :Session, "blade_runner/session"
   autoload :TestResults, "blade_runner/test_results"
   autoload :CombinedTestResults, "blade_runner/combined_test_results"
   autoload :Console, "blade_runner/interface/console"

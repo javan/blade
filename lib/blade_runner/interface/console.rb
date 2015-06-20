@@ -48,7 +48,7 @@ module BladeRunner::Console
     handle_stale_tabs
 
     BR.subscribe("/results") do |details|
-      session = BR::SessionManager[details["session_id"]]
+      session = BR::Session.find(details["session_id"])
 
       if tab = Tab.find(session.id)
         if details["line"] && tab.active?

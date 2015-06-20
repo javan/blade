@@ -36,7 +36,7 @@ module BladeRunner::CI
     end
 
     def display_results_and_exit
-      results = BR::SessionManager.combined_test_results
+      results = BR::Session.combined_test_results
       display results
       exit results.failed? ? 1 : 0
     end
