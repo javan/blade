@@ -24,8 +24,8 @@ module BladeRunner
   autoload :SessionManager, "blade_runner/session_manager"
   autoload :TestResults, "blade_runner/test_results"
   autoload :CombinedTestResults, "blade_runner/combined_test_results"
-  autoload :Console, "blade_runner/console"
-  autoload :CI, "blade_runner/ci"
+  autoload :Console, "blade_runner/interface/console"
+  autoload :CI, "blade_runner/interface/ci"
 
   extend Forwardable
   def_delegators "Server.client", :subscribe, :publish
