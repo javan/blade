@@ -1,13 +1,12 @@
 module BladeRunner::CI
   extend self
-  extend BladeRunner::Knife
   include BladeRunner::Component
 
   def start
     @completed_sessions = 0
 
     log "# Running"
-    subscribe("/results") do |details|
+    BR.subscribe("/results") do |details|
       process_result(details)
     end
   end
@@ -33,11 +32,11 @@ module BladeRunner::CI
     end
 
     def done?
-      @completed_sessions == (config.expected_sessions || 1)
+      @completed_sessions == (BR.config.expected_sessions || 1)
     end
 
     def display_results_and_exit
-      results = sessions.combined_test_results
+      results = BR::SessionManager.combined_test_results
       display results
       exit results.failed? ? 1 : 0
     end

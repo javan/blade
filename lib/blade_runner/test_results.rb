@@ -1,13 +1,11 @@
 class BladeRunner::TestResults
-  include BladeRunner::Knife
-
   attr_reader :session_id, :status, :lines, :passes, :failures
 
   def initialize(session_id)
     @session_id = session_id
     reset
 
-    subscribe("/tests") do |details|
+    BR.subscribe("/tests") do |details|
       if details["session_id"] == session_id
         process_test_result(details)
       end
@@ -53,7 +51,7 @@ class BladeRunner::TestResults
     end
 
     publication.merge!(status: status, session_id: session_id, completed: @completed)
-    publish("/results", publication)
+    BR.publish("/results", publication)
   end
 
   def total

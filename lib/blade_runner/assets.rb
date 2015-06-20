@@ -2,18 +2,13 @@ require "sprockets"
 
 module BladeRunner::Assets
   extend self
-  extend BladeRunner::Knife
 
   def environment
     @environment ||= Sprockets::Environment.new do |env|
-      env.cache = Sprockets::Cache::FileStore.new(tmp_path)
+      env.cache = Sprockets::Cache::FileStore.new(BR.tmp_path)
 
       load_paths.each do |path|
         env.append_path(path)
-      end
-
-      env.context_class.class_eval do
-        include BladeRunner::Knife
       end
     end
   end
@@ -23,11 +18,11 @@ module BladeRunner::Assets
   end
 
   def local_load_paths
-    %w( assets ).map { |a| root_path.join(a) }
+    %w( assets ).map { |a| BR.root_path.join(a) }
   end
 
   def remote_load_paths
-    config.load_paths.map { |a| Pathname.new(a) }
+    BR.config.load_paths.map { |a| Pathname.new(a) }
   end
 
   def watch_logical_paths
@@ -37,7 +32,7 @@ module BladeRunner::Assets
       mtimes = get_mtimes
       unless mtimes == @mtimes
         @mtimes = mtimes
-        publish("/assets", changed: @mtimes)
+        BR.publish("/assets", changed: @mtimes)
       end
     end
   end
@@ -45,7 +40,7 @@ module BladeRunner::Assets
   private
     def get_mtimes
       {}.tap do |mtimes|
-        config.logical_paths.each do |path|
+        BR.config.logical_paths.each do |path|
           mtimes[path] = get_mtime(path)
         end
       end

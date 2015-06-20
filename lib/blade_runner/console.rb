@@ -3,7 +3,6 @@ require "curses"
 module BladeRunner::Console
   extend self
   include BladeRunner::Component
-  extend BladeRunner::Knife
 
   extend Forwardable
   def_delegators "BladeRunner::Console", :create_window
@@ -149,7 +148,7 @@ module BladeRunner::Console
     end
 
     def session
-      BladeRunner.sessions[id]
+      BR::SessionManager[id]
     end
 
     def status
@@ -222,7 +221,7 @@ module BladeRunner::Console
 
   def start
     run
-    assets.watch_logical_paths
+    BR::Assets.watch_logical_paths
   end
 
   def stop
@@ -235,8 +234,8 @@ module BladeRunner::Console
     handle_keys
     handle_stale_tabs
 
-    subscribe("/results") do |details|
-      session = sessions[details["session_id"]]
+    BR.subscribe("/results") do |details|
+      session = BR::SessionManager[details["session_id"]]
 
       if tab = Tab.find(session.id)
         if details["line"] && tab.active?
@@ -267,7 +266,7 @@ module BladeRunner::Console
       header_window.attron(Curses::A_BOLD)
       header_window.addstr "BLADE RUNNER [press 'q' to quit]\n"
       header_window.attroff(Curses::A_BOLD)
-      header_window.addstr "Open #{blade_url} to start"
+      header_window.addstr "Open #{BR.blade_url} to start"
       header_window.noutrefresh
 
       Tab.install(top: header_window.maxy)
@@ -286,14 +285,14 @@ module BladeRunner::Console
             Tab.active.activate_next
             Curses.doupdate
           when "q"
-            BladeRunner.stop
+            BR.stop
           end
         end
       end
     end
 
     def handle_stale_tabs
-      subscribe("/browsers") do |details|
+      BR.subscribe("/browsers") do |details|
         if details["message"] = "ping"
           if tab = Tab.find(details["session_id"])
             tab.last_ping_at = Time.now

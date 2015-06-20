@@ -17,8 +17,7 @@ module BladeRunner
     @components << component
   end
 
-  require "blade_runner/concerns/component"
-  require "blade_runner/concerns/knife"
+  require "blade_runner/component"
   require "blade_runner/server"
 
   autoload :Assets, "blade_runner/assets"
@@ -27,6 +26,9 @@ module BladeRunner
   autoload :CombinedTestResults, "blade_runner/combined_test_results"
   autoload :Console, "blade_runner/console"
   autoload :CI, "blade_runner/ci"
+
+  extend Forwardable
+  def_delegators "Server.client", :subscribe, :publish
 
   ALLOWED_MODES = [:console, :ci]
 
@@ -57,22 +59,6 @@ module BladeRunner
 
   def blade_url(path = "")
     "http://localhost:#{config.port}#{path}"
-  end
-
-  def assets
-    Assets
-  end
-
-  def server
-    Server
-  end
-
-  def client
-    server.client
-  end
-
-  def sessions
-    SessionManager
   end
 
   def interface
@@ -137,3 +123,5 @@ module BladeRunner
       end
     end
 end
+
+BR = BladeRunner

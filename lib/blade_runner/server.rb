@@ -4,17 +4,16 @@ require "useragent"
 module BladeRunner::Server
   extend self
   include BladeRunner::Component
-  extend BladeRunner::Knife
 
   WEBSOCKET_PATH = "/blade/websocket"
 
   def start
     Faye::WebSocket.load_adapter("thin")
-    Rack::Server.start(app: app, Port: config.port, server: "thin")
+    Rack::Server.start(app: app, Port: BR.config.port, server: "thin")
   end
 
   def websocket_url(path = "")
-    blade_url(WEBSOCKET_PATH + path)
+    BR.blade_url(WEBSOCKET_PATH + path)
   end
 
   def client
@@ -29,21 +28,19 @@ module BladeRunner::Server
     end
 
     class App
-      include BladeRunner::Knife
-
       def call(env)
         case env["PATH_INFO"]
         when "/"
           user_agent = UserAgent.parse(env["HTTP_USER_AGENT"])
-          session = sessions.create(user_agent)
+          session = BR::SessionManager.create(user_agent)
           [302, { "Location" => "/sessions/#{session.id}" }, []]
         when /sessions\/\w+/
-          env["PATH_INFO"] = "/blade/#{config.framework}.html"
-          assets.environment.call(env)
+          env["PATH_INFO"] = "/blade/#{BR.config.framework}.html"
+          BR::Assets.environment.call(env)
         when Regexp.new(WEBSOCKET_PATH)
           bayeux.call(env)
         else
-          assets.environment.call(env)
+          BR::Assets.environment.call(env)
         end
       end
 
