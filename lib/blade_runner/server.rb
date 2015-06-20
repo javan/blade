@@ -13,7 +13,7 @@ module BladeRunner::Server
   end
 
   def websocket_url(path = "")
-    BR.blade_url(WEBSOCKET_PATH + path)
+    BR.url(WEBSOCKET_PATH + path)
   end
 
   def client

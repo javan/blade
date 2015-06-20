@@ -58,7 +58,7 @@ module BladeRunner
     EM.stop if EM.reactor_running?
   end
 
-  def blade_url(path = "")
+  def url(path = "")
     "http://localhost:#{config.port}#{path}"
   end
 

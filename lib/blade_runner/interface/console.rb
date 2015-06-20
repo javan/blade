@@ -79,7 +79,7 @@ module BladeRunner::Console
       header_window.attron(Curses::A_BOLD)
       header_window.addstr "BLADE RUNNER [press 'q' to quit]\n"
       header_window.attroff(Curses::A_BOLD)
-      header_window.addstr "Open #{BR.blade_url} to start"
+      header_window.addstr "Open #{BR.url} to start"
       header_window.noutrefresh
 
       Tab.install(top: header_window.maxy)
