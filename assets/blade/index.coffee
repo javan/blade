@@ -1,30 +1,36 @@
 #= require faye-browser
 
-class Blade
-  CHANNEL: "/tests"
-  SESSION_ID: window.location.pathname.match(/sessions\/(\w+)/)?[1]
+websocketURL = document.querySelector("meta[name=websocket]").getAttribute("content")
+client = new Faye.Client websocketURL
+session_id = location.pathname.match(/sessions\/(\w+)/)?[1]
 
-  constructor: ->
-    @client = new Faye.Client getMetaTagContent("websocket")
-    @client.subscribe "/assets", (data) ->
-      window.location.reload() if data.changed
+publish = ({channel, event, data}) ->
+  data = extend(copy(data), {event, session_id})
+  client.publish(channel, data)
 
-    setInterval =>
-      @client.publish("/browsers", message: "ping", session_id: @SESSION_ID)
-    , 1000
+copy = (object) ->
+  results = {}
+  results[key] = value for key, value of object
+  results
 
-  publish: (event, data = {}) ->
-    data = copy(data)
-    data.event = event
-    data.session_id = @SESSION_ID
-    @client.publish(@CHANNEL, data)
+extend = (object, attributes) ->
+  object[key] = value for key, value of attributes
+  object
 
-  copy = (object) ->
-    results = {}
-    results[key] = value for key, value of object
-    results
+client.subscribe "/assets", (data) ->
+  location.reload() if data.changed
 
-  getMetaTagContent = (name) ->
-    document.querySelector("meta[name='#{name}']").getAttribute("content")
+setInterval ->
+  publish(channel: "/browsers", event: "ping")
+, 1000
 
-@blade = new Blade
+@BladeRunner =
+  suiteBegin: ({total}) ->
+    publish("/tests", event: "begin", data: {total})
+
+  testResult: ({name, pass, message}) ->
+    result = pass
+    publish(channel: "/tests", event: "result", data: {result, name, message})
+
+  suiteEnd: (details) ->
+    publish(channel: "/tests", event: "end", data: details)
