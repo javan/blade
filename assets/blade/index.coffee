@@ -1,3 +1,5 @@
+#= require faye-browser
+
 class Blade
   CHANNEL: "/tests"
   SESSION_ID: window.location.pathname.match(/sessions\/(\w+)/)?[1]

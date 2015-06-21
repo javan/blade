@@ -18,7 +18,7 @@ module BladeRunner::Assets
   end
 
   def local_load_paths
-    %w( assets ).map { |a| BR.root_path.join(a) }
+    %w( assets ).map { |a| BR.root_path.join(a) } + [ faye_load_path ]
   end
 
   def remote_load_paths
@@ -50,5 +50,10 @@ module BladeRunner::Assets
       environment[logical_path].mtime
     rescue Exception => e
       e.to_s
+    end
+
+    def faye_load_path
+      gemspec = Gem::Specification.find_by_name("faye")
+      Pathname.new(gemspec.gem_dir).join("lib")
     end
 end
