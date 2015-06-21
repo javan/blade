@@ -22,6 +22,7 @@ module BladeRunner
 
   autoload :Model, "blade_runner/model"
   autoload :Assets, "blade_runner/assets"
+  autoload :TemplateHelper, "blade_runner/template_helper"
   autoload :Session, "blade_runner/session"
   autoload :TestResults, "blade_runner/test_results"
   autoload :CombinedTestResults, "blade_runner/combined_test_results"

@@ -10,7 +10,17 @@ module BladeRunner::Assets
       load_paths.each do |path|
         env.append_path(path)
       end
+
+      env.context_class.class_eval do
+        include BladeRunner::TemplateHelper
+      end
     end
+  end
+
+  def logical_paths(type = nil)
+    paths = BR.config.logical_paths
+    paths.select! { |path| File.extname(path) == ".#{type}" } if type
+    paths
   end
 
   def load_paths

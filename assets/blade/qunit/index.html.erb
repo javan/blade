@@ -1,21 +1,14 @@
 <!DOCTYPE html>
 <html>
 <head>
+  <%= blade_runner_head %>
   <meta charset="utf-8">
   <title>Blade Runner: QUnit tests</title>
   <link rel="stylesheet" type="text/css" href="/blade/qunit.css">
-
-  <meta name="websocket" content="<%= server.websocket_url %>">
-  <script src="/blade.js"></script>
   <script src="/blade/qunit.js"></script>
-
-  <% BladeRunner.config.logical_paths.each do |path| %>
-    <% if File.extname(path) == ".js" %>
-      <script src="/<%= path %>"></script>
-    <% end %>
-  <% end %>
 </head>
 <body>
+  <%= blade_runner_body %>
   <div id="tests">
     <div id="qunit"></div>
     <div id="qunit-fixture"></div>
