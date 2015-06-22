@@ -4,6 +4,7 @@ require "eventmachine"
 require "faye"
 require "pathname"
 require "ostruct"
+require "yaml"
 
 require "active_support/core_ext/string/inflections"
 require "active_support/core_ext/hash"
@@ -22,7 +23,7 @@ module BladeRunner
 
   autoload :Model, "blade_runner/model"
   autoload :Assets, "blade_runner/assets"
-  autoload :TemplateHelper, "blade_runner/template_helper"
+  autoload :RackAdapter, "blade_runner/rack_adapter"
   autoload :Session, "blade_runner/session"
   autoload :TestResults, "blade_runner/test_results"
   autoload :CombinedTestResults, "blade_runner/combined_test_results"
@@ -39,16 +40,18 @@ module BladeRunner
 
   attr_reader :config, :plugins
 
-  def start(options = {})
-    @options = options.with_indifferent_access
+  @running = false
+  @initialized = false
 
+  def start(options = {})
+    return if running?
+    initialize!(options)
     handle_exit
-    setup_config!
-    setup_plugins!
     interface
 
     EM.run do
       @components.each { |c| c.start if c.respond_to?(:start) }
+      @running = true
     end
   end
 
@@ -57,6 +60,25 @@ module BladeRunner
     @stopping = true
     @components.each { |c| c.stop if c.respond_to?(:stop) }
     EM.stop if EM.reactor_running?
+    @running = false
+  end
+
+  def running?
+    @running
+  end
+
+  def initialize!(options = {})
+    return if initialized?
+    @options = options.with_indifferent_access
+    load_config_file!
+    read_arguments!
+    setup_config!
+    setup_plugins!
+    @initialized = true
+  end
+
+  def initialized?
+    @initialized
   end
 
   def url(path = "")
@@ -88,6 +110,19 @@ module BladeRunner
       at_exit do
         stop
         exit $!.status if $!.is_a?(SystemExit)
+      end
+    end
+
+    def load_config_file!
+      filename = ".blade.yml"
+      if File.exists?(filename)
+        @options.reverse_merge!(YAML.load_file(filename))
+      end
+    end
+
+    def read_arguments!
+      if mode = ARGV[0]
+        @options[:mode] = mode.to_sym
       end
     end
 

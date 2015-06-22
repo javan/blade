@@ -3,16 +3,19 @@ require "sprockets"
 module BladeRunner::Assets
   extend self
 
-  def environment
-    @environment ||= Sprockets::Environment.new do |env|
-      env.cache = Sprockets::Cache::FileStore.new(BR.tmp_path)
+  @environments = {}
 
-      load_paths.each do |path|
+  def environment(name = :blade_runner)
+    @environments[name] ||= Sprockets::Environment.new do |env|
+      env.cache = Sprockets::Cache::FileStore.new(BR.tmp_path.join(name.to_s))
+
+      send("#{name}_load_paths").each do |path|
         env.append_path(path)
       end
 
       env.context_class.class_eval do
-        include BladeRunner::TemplateHelper
+        extend Forwardable
+        def_delegators "BladeRunner::Assets", :environment, :logical_paths
       end
     end
   end
@@ -23,16 +26,16 @@ module BladeRunner::Assets
     paths
   end
 
-  def load_paths
-    local_load_paths + remote_load_paths
+  def blade_runner_load_paths
+    [ BR.root_path.join("assets"), faye_load_path ]
   end
 
-  def local_load_paths
-    %w( assets ).map { |a| BR.root_path.join(a) } + [ faye_load_path ]
-  end
-
-  def remote_load_paths
+  def user_load_paths
     BR.config.load_paths.map { |a| Pathname.new(a) }
+  end
+
+  def adapter_load_paths
+    [ BR.root_path.join("adapters/qunit") ]
   end
 
   def watch_logical_paths
@@ -57,7 +60,7 @@ module BladeRunner::Assets
     end
 
     def get_mtime(logical_path)
-      environment[logical_path].mtime
+      environment_for(:user)[logical_path].mtime
     rescue Exception => e
       e.to_s
     end
