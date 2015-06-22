@@ -73,6 +73,7 @@ module BladeRunner
     load_config_file!
     read_arguments!
     setup_config!
+    setup_adapter!
     setup_plugins!
     @initialized = true
   end
@@ -141,6 +142,10 @@ module BladeRunner
       options[:logical_paths] = Array(options[:logical_paths])
 
       @config = OpenStruct.new(options)
+    end
+
+    def setup_adapter!
+      require "blade_runner/#{config.framework}_adapter"
     end
 
     def setup_plugins!

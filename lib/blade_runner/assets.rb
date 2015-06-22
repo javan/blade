@@ -27,7 +27,7 @@ module BladeRunner::Assets
   end
 
   def blade_runner_load_paths
-    [ BR.root_path.join("assets"), faye_load_path ]
+    [ BR.root_path.join("assets"), gem_pathname("faye").join("lib") ]
   end
 
   def user_load_paths
@@ -35,7 +35,8 @@ module BladeRunner::Assets
   end
 
   def adapter_load_paths
-    [ BR.root_path.join("adapters/qunit") ]
+    gem_name = "blade_runner-#{BR.config.framework}_adapter"
+    [ gem_pathname(gem_name).join("assets") ]
   end
 
   def watch_logical_paths
@@ -65,8 +66,8 @@ module BladeRunner::Assets
       e.to_s
     end
 
-    def faye_load_path
-      gemspec = Gem::Specification.find_by_name("faye")
-      Pathname.new(gemspec.gem_dir).join("lib")
+    def gem_pathname(gem_name)
+      gemspec = Gem::Specification.find_by_name(gem_name)
+      Pathname.new(gemspec.gem_dir)
     end
 end
