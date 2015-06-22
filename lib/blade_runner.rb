@@ -6,7 +6,6 @@ require "pathname"
 require "ostruct"
 require "yaml"
 
-require "active_support/core_ext/string/inflections"
 require "active_support/core_ext/hash"
 
 module BladeRunner
@@ -159,9 +158,7 @@ module BladeRunner
 
       plugin_config.each do |name, plugin_config|
         plugins[name] = OpenStruct.new(config: OpenStruct.new(plugin_config))
-        plugin_path = "blade_runner/#{name}"
-        require plugin_path
-        @runnables << plugin_path.camelize.safe_constantize
+        require "blade_runner/#{name}_plugin"
       end
     end
 end
