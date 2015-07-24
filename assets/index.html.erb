@@ -6,24 +6,32 @@
   <meta name="websocket" content="blade_runner/websocket">
   <script src="blade_runner.js"></script>
 
+  <% environment(:user).depend_on("head.html") %>
   <%= environment(:user)["head.html"] %>
 
+  <% environment(:adapter).depend_on("index.css") %>
   <% if environment(:adapter)["index.css"] %>
     <link rel="stylesheet" type="text/css" href="blade_runner/adapter.css">
   <% end %>
 
+  <% environment(:adapter).depend_on("index.js") %>
   <% if environment(:adapter)["index.js"] %>
     <script src="blade_runner/adapter.js"></script>
   <% end %>
 
+  <% environment(:adapter).depend_on("head.html") %>
   <%= environment(:adapter)["head.html"] %>
 
   <% logical_paths(:js).each do |path| %>
+    <% environment.depend_on(path) %>
     <script src="<%= path %>"></script>
   <% end %>
 </head>
 <body>
+  <% environment(:user).depend_on("body.html") %>
   <%= environment(:user)["body.html"] %>
+
+  <% environment(:adapter).depend_on("body.html") %>
   <%= environment(:adapter)["body.html"] %>
 </body>
 </html>
