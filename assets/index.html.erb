@@ -4,34 +4,30 @@
   <meta charset="utf-8">
   <title>Blade Runner</title>
   <meta name="websocket" content="blade_runner/websocket">
-  <script src="blade_runner.js"></script>
+  <% with_asset("index.js", :blade_runner) do %>
+    <script src="blade_runner.js"></script>
+  <% end %>
 
-  <% environment(:user).depend_on("head.html") %>
-  <%= environment(:user)["head.html"] %>
+  <%= render_asset("head.html", :user) %>
 
-  <% environment(:adapter).depend_on("index.css") %>
-  <% if environment(:adapter)["index.css"] %>
+  <% with_asset("index.css", :adapter) do %>
     <link rel="stylesheet" type="text/css" href="blade_runner/adapter.css">
   <% end %>
 
-  <% environment(:adapter).depend_on("index.js") %>
-  <% if environment(:adapter)["index.js"] %>
+  <% with_asset("index.js", :adapter) do %>
     <script src="blade_runner/adapter.js"></script>
   <% end %>
 
-  <% environment(:adapter).depend_on("head.html") %>
-  <%= environment(:adapter)["head.html"] %>
+  <%= render_asset("head.html", :adapter) %>
 
   <% logical_paths(:js).each do |path| %>
-    <% environment.depend_on(path) %>
-    <script src="<%= path %>"></script>
+    <% with_asset(path, :user) do %>
+      <script src="<%= path %>"></script>
+    <% end %>
   <% end %>
 </head>
 <body>
-  <% environment(:user).depend_on("body.html") %>
-  <%= environment(:user)["body.html"] %>
-
-  <% environment(:adapter).depend_on("body.html") %>
-  <%= environment(:adapter)["body.html"] %>
+  <%= render_asset("body.html", :user) %>
+  <%= render_asset("body.html", :adapter) %>
 </body>
 </html>

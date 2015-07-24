@@ -16,6 +16,17 @@ module BladeRunner::Assets
       env.context_class.class_eval do
         extend Forwardable
         def_delegators "BladeRunner::Assets", :environment, :logical_paths
+
+        def with_asset(path, env_name)
+          if asset = environment(env_name)[path]
+            depend_on(asset.pathname)
+            yield(asset)
+          end
+        end
+
+        def render_asset(path, env_name)
+          with_asset(path, env_name) { |asset| asset.to_s }
+        end
       end
     end
   end
