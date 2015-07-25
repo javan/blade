@@ -38,7 +38,7 @@ module BladeRunner::Assets
   end
 
   def blade_runner_load_paths
-    [ BR.root_path.join("assets"), gem_pathname("faye").join("lib") ]
+    [ BR.root_path.join("assets") ]
   end
 
   def user_load_paths

@@ -3,7 +3,8 @@
 <head>
   <meta charset="utf-8">
   <title>Blade Runner</title>
-  <meta name="websocket" content="blade_runner/websocket">
+  <script src="blade_runner/websocket/client.js" data-websocket></script>
+
   <% with_asset("index.js", :blade_runner) do %>
     <script src="blade_runner.js"></script>
   <% end %>

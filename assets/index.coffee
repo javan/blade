@@ -1,7 +1,8 @@
-#= require faye-browser
+getWebSocketURL = ->
+  element = document.querySelector("script[data-websocket]")
+  element.src.replace(/\/client\.js$/, "")
 
-websocketURL = document.querySelector("meta[name=websocket]").getAttribute("content")
-@client = new Faye.Client websocketURL
+@client = new Faye.Client getWebSocketURL()
 session_id = document.cookie.match(/blade_runner_session=(\w+)/)?[1]
 
 publish = ({channel, event, data}) ->
