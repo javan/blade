@@ -27,7 +27,9 @@ Gem::Specification.new do |spec|
   spec.add_dependency "coffee-script-source", "~> 1.9.0"
   spec.add_dependency "curses", "~> 1.0.0"
   spec.add_dependency "eventmachine", "~> 1.0.0"
-  spec.add_dependency "faye", "~> 1.1.1"
+  # Lock to 1.1.1 to avoid Promise error in 1.1.2 with Chrome 43
+  # "Uncaught TypeError: Cannot read property '_state' of undefined"
+  spec.add_dependency "faye", "1.1.1"
   spec.add_dependency "sprockets", "~> 3.2.0"
   spec.add_dependency "thin", "~> 1.6.0"
   spec.add_dependency "useragent", "~> 0.13.0"
