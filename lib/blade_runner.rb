@@ -30,6 +30,7 @@ module BladeRunner
   extend Forwardable
   def_delegators "Server.client", :subscribe, :publish
 
+  DEFAULT_FRAMEWORK = :qunit
   DEFAULT_PORT = 9876
 
   attr_reader :config, :plugins
@@ -107,6 +108,7 @@ module BladeRunner
         options.merge! options_for_interface
       end
 
+      options[:framework] ||= DEFAULT_FRAMEWORK
       options[:port] ||= DEFAULT_PORT
       options[:load_paths] = Array(options[:load_paths])
       options[:logical_paths] = Array(options[:logical_paths])
