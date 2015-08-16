@@ -4,7 +4,7 @@ module BladeRunner::Console
   extend self
   include BladeRunner::Component
 
-  autoload :Tab, "blade_runner/interface/console_tab"
+  autoload :Tab, "blade_runner/interface/console/tab"
 
   extend Forwardable
   def_delegators "BladeRunner::Console", :create_window
