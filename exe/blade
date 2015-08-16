@@ -1,4 +1,6 @@
 #!/usr/bin/env ruby
 
 require "blade_runner"
-BladeRunner.start
+
+BladeRunner.initialize!
+BladeRunner::CLI.start(ARGV)

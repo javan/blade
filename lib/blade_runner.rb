@@ -1,12 +1,12 @@
-require "blade_runner/version"
-
+require "active_support/core_ext/hash"
 require "eventmachine"
 require "faye"
 require "pathname"
 require "ostruct"
 require "yaml"
 
-require "active_support/core_ext/hash"
+require "blade_runner/version"
+require "blade_runner/cli"
 
 module BladeRunner
   extend self
@@ -26,27 +26,20 @@ module BladeRunner
   autoload :Session, "blade_runner/session"
   autoload :TestResults, "blade_runner/test_results"
   autoload :CombinedTestResults, "blade_runner/combined_test_results"
-  autoload :Console, "blade_runner/interface/console"
-  autoload :CI, "blade_runner/interface/ci"
 
   extend Forwardable
   def_delegators "Server.client", :subscribe, :publish
 
-  ALLOWED_MODES = [:console, :ci]
-
-  DEFAULT_MODE = ALLOWED_MODES.first
   DEFAULT_PORT = 9876
 
   attr_reader :config, :plugins
 
-  @running = false
-  @initialized = false
-
   def start(options = {})
     return if running?
     initialize!(options)
+    load_interface!
+
     handle_exit
-    interface
 
     EM.run do
       @components.each { |c| c.start if c.respond_to?(:start) }
@@ -67,30 +60,16 @@ module BladeRunner
   end
 
   def initialize!(options = {})
-    return if initialized?
-    @options = options.with_indifferent_access
-    load_config_file!
-    read_arguments!
-    setup_config!
-    setup_adapter!
-    setup_plugins!
-    @initialized = true
-  end
+    @options ||= {}.with_indifferent_access
+    @options.merge! options
 
-  def initialized?
-    @initialized
+    setup_config!
+    load_plugins!
+    load_adapter!
   end
 
   def url(path = "")
     "http://localhost:#{config.port}#{path}"
-  end
-
-  def interface
-    @interface ||=
-      case config.mode
-      when :ci then CI
-      when :console then Console
-      end
   end
 
   def root_path
@@ -120,20 +99,12 @@ module BladeRunner
       end
     end
 
-    def read_arguments!
-      if mode = ARGV[0]
-        @options[:mode] = mode.to_sym
-      end
-    end
-
     def setup_config!
-      ignore_options = ALLOWED_MODES + [:plugins]
+      load_config_file!
+      options = @options.except(:plugins)
 
-      options = @options.except(ignore_options)
-      options[:mode] = DEFAULT_MODE unless ALLOWED_MODES.include?(options[:mode])
-
-      if options_for_mode = @options[options[:mode]]
-        options.merge! options_for_mode.except(ignore_options)
+      if options_for_interface = @options[options[:interface]]
+        options.merge! options_for_interface
       end
 
       options[:port] ||= DEFAULT_PORT
@@ -141,23 +112,30 @@ module BladeRunner
       options[:logical_paths] = Array(options[:logical_paths])
 
       @config = OpenStruct.new(options)
+
+      setup_plugin_config!
     end
 
-    def setup_adapter!
+    def setup_plugin_config!
+      @plugins = OpenStruct.new
+
+      plugin_options = @options[:plugins] || {}
+
+      plugin_options.each do |name, plugin_config|
+        plugins[name] = OpenStruct.new(config: OpenStruct.new(plugin_config))
+      end
+    end
+
+    def load_interface!
+      require "blade_runner/interface/#{config.interface}"
+    end
+
+    def load_adapter!
       require "blade_runner/#{config.framework}_adapter"
     end
 
-    def setup_plugins!
-      @plugins = OpenStruct.new
-
-      plugin_config = @options[:plugins] || {}
-
-      if plugins_for_mode = (@options[config.mode] || {})[:plugins]
-        plugin_config.merge! plugins_for_mode
-      end
-
-      plugin_config.each do |name, plugin_config|
-        plugins[name] = OpenStruct.new(config: OpenStruct.new(plugin_config))
+    def load_plugins!
+      plugins.to_h.keys.each do |name|
         require "blade_runner/#{name}_plugin"
       end
     end

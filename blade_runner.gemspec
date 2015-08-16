@@ -33,4 +33,5 @@ Gem::Specification.new do |spec|
   spec.add_dependency "sprockets", "~> 3.2.0"
   spec.add_dependency "thin", "~> 1.6.0"
   spec.add_dependency "useragent", "~> 0.13.0"
+  spec.add_dependency "thor", "~> 0.19.1"
 end
