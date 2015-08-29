@@ -143,21 +143,21 @@ class Blade::Console::Tab < Blade::Model
   end
 
   def activate_next
-    tabs = tabs.all
+    all = tabs.all
 
-    if tabs.last == self
-      tabs.first.activate
-    elsif tab = tabs[index + 1]
+    if all.last == self
+      all.first.activate
+    elsif tab = all[index + 1]
       tab.activate
     end
   end
 
   def activate_previous
-    tabs = tabs.all
+    all = tabs.all
 
-    if tabs.first == self
-      tabs.last.activate
-    elsif tab = tabs[index - 1]
+    if all.first == self
+      all.last.activate
+    elsif tab = all[index - 1]
       tab.activate
     end
   end

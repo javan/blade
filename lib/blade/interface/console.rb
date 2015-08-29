@@ -92,10 +92,10 @@ module Blade::Console
         while ch = Curses.getch
           case ch
           when Curses::KEY_LEFT
-            Tab.active.activate_previous
+            Tab.active.try(:activate_previous)
             Curses.doupdate
           when Curses::KEY_RIGHT
-            Tab.active.activate_next
+            Tab.active.try(:activate_next)
             Curses.doupdate
           when "q"
             Blade.stop
