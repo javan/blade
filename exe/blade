@@ -3,7 +3,7 @@
 require "blade"
 
 if ARGV.empty?
-  Blade::CLI.new.console
+  Blade::CLI.new.runner
 else
   Blade.initialize!
   Blade::CLI.start(ARGV)

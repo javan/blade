@@ -1,13 +1,13 @@
 require "curses"
 
-module Blade::Console
+module Blade::Runner
   extend self
   include Blade::Component
 
-  autoload :Tab, "blade/interface/console/tab"
+  autoload :Tab, "blade/interface/runner/tab"
 
   extend Forwardable
-  def_delegators "Blade::Console", :create_window
+  def_delegators "Blade::Runner", :create_window
 
   COLOR_NAMES = %w( white yellow green red )
   PADDING = 1

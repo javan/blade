@@ -1,10 +1,10 @@
-class Blade::Console::Tab < Blade::Model
+class Blade::Runner::Tab < Blade::Model
   extend Forwardable
-  def_delegators "Blade::Console", :colors, :create_window
+  def_delegators "Blade::Runner", :colors, :create_window
 
   class << self
     extend Forwardable
-    def_delegators "Blade::Console", :create_window
+    def_delegators "Blade::Runner", :create_window
 
     attr_reader :window, :status_window, :content_window
 
