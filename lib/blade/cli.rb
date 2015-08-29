@@ -1,13 +1,13 @@
 require "thor"
 
-class BladeRunner::CLI < Thor
+class Blade::CLI < Thor
   desc "console", "Start in console mode"
   def console
-    BladeRunner.start(interface: :console)
+    Blade.start(interface: :console)
   end
 
   desc "ci", "Start in CI mode"
   def ci
-    BladeRunner.start(interface: :ci)
+    Blade.start(interface: :ci)
   end
 end

@@ -1,6 +1,6 @@
 require "securerandom"
 
-class BladeRunner::Model < OpenStruct
+class Blade::Model < OpenStruct
   class << self
     def models
       @models ||= {}

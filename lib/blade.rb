@@ -5,10 +5,10 @@ require "pathname"
 require "ostruct"
 require "yaml"
 
-require "blade_runner/version"
-require "blade_runner/cli"
+require "blade/version"
+require "blade/cli"
 
-module BladeRunner
+module Blade
   extend self
 
   @components = []
@@ -17,15 +17,15 @@ module BladeRunner
     @components << component
   end
 
-  require "blade_runner/component"
-  require "blade_runner/server"
+  require "blade/component"
+  require "blade/server"
 
-  autoload :Model, "blade_runner/model"
-  autoload :Assets, "blade_runner/assets"
-  autoload :RackAdapter, "blade_runner/rack_adapter"
-  autoload :Session, "blade_runner/session"
-  autoload :TestResults, "blade_runner/test_results"
-  autoload :CombinedTestResults, "blade_runner/combined_test_results"
+  autoload :Model, "blade/model"
+  autoload :Assets, "blade/assets"
+  autoload :RackAdapter, "blade/rack_adapter"
+  autoload :Session, "blade/session"
+  autoload :TestResults, "blade/test_results"
+  autoload :CombinedTestResults, "blade/combined_test_results"
 
   extend Forwardable
   def_delegators "Server.client", :subscribe, :publish
@@ -78,7 +78,7 @@ module BladeRunner
   end
 
   def tmp_path
-    Pathname.new(".").join("tmp/blade_runner")
+    Pathname.new(".").join("tmp/blade")
   end
 
   private
@@ -129,18 +129,16 @@ module BladeRunner
     end
 
     def load_interface!
-      require "blade_runner/interface/#{config.interface}"
+      require "blade/interface/#{config.interface}"
     end
 
     def load_adapter!
-      require "blade_runner/#{config.framework}_adapter"
+      require "blade/#{config.framework}_adapter"
     end
 
     def load_plugins!
       plugins.to_h.keys.each do |name|
-        require "blade_runner/#{name}_plugin"
+        require "blade/#{name}_plugin"
       end
     end
 end
-
-BR = BladeRunner

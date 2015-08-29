@@ -3,7 +3,7 @@ getWebSocketURL = ->
   element.src.replace(/\/client\.js$/, "")
 
 @client = new Faye.Client getWebSocketURL()
-session_id = document.cookie.match(/blade_runner_session=(\w+)/)?[1]
+session_id = document.cookie.match(/blade_session=(\w+)/)?[1]
 
 publish = ({channel, event, data}) ->
   if session_id?
@@ -27,7 +27,7 @@ if session_id?
     publish(channel: "/browsers", event: "ping")
   , 1000
 
-@BladeRunner =
+@Blade =
   suiteBegin: ({total}) ->
     publish("/tests", event: "begin", data: {total})
 

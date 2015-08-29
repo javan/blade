@@ -1,13 +1,13 @@
 require "curses"
 
-module BladeRunner::Console
+module Blade::Console
   extend self
-  include BladeRunner::Component
+  include Blade::Component
 
-  autoload :Tab, "blade_runner/interface/console/tab"
+  autoload :Tab, "blade/interface/console/tab"
 
   extend Forwardable
-  def_delegators "BladeRunner::Console", :create_window
+  def_delegators "Blade::Console", :create_window
 
   COLOR_NAMES = %w( white yellow green red )
   PADDING = 1
@@ -34,7 +34,7 @@ module BladeRunner::Console
 
   def start
     run
-    BR::Assets.watch_logical_paths
+    Blade::Assets.watch_logical_paths
   end
 
   def stop
@@ -47,8 +47,8 @@ module BladeRunner::Console
     handle_keys
     handle_stale_tabs
 
-    BR.subscribe("/results") do |details|
-      session = BR::Session.find(details["session_id"])
+    Blade.subscribe("/results") do |details|
+      session = Blade::Session.find(details["session_id"])
 
       if tab = Tab.find(session.id)
         if details["line"] && tab.active?
@@ -79,7 +79,7 @@ module BladeRunner::Console
       header_window.attron(Curses::A_BOLD)
       header_window.addstr "BLADE RUNNER [press 'q' to quit]\n"
       header_window.attroff(Curses::A_BOLD)
-      header_window.addstr "Open #{BR.url} to start"
+      header_window.addstr "Open #{Blade.url} to start"
       header_window.noutrefresh
 
       Tab.install(top: header_window.maxy)
@@ -98,14 +98,14 @@ module BladeRunner::Console
             Tab.active.activate_next
             Curses.doupdate
           when "q"
-            BR.stop
+            Blade.stop
           end
         end
       end
     end
 
     def handle_stale_tabs
-      BR.subscribe("/browsers") do |details|
+      Blade.subscribe("/browsers") do |details|
         if details["message"] = "ping"
           if tab = Tab.find(details["session_id"])
             tab.last_ping_at = Time.now

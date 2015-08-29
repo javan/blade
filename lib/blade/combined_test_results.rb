@@ -1,4 +1,4 @@
-class BladeRunner::CombinedTestResults
+class Blade::CombinedTestResults
   attr_reader :sessions, :all_test_results
 
   def initialize(sessions)

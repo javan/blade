@@ -3,20 +3,20 @@
 <head>
   <meta charset="utf-8">
   <title>Blade Runner</title>
-  <script src="blade_runner/websocket/client.js" data-websocket></script>
+  <script src="blade/websocket/client.js" data-websocket></script>
 
-  <% with_asset("index.js", :blade_runner) do %>
-    <script src="blade_runner.js"></script>
+  <% with_asset("index.js", :blade) do %>
+    <script src="blade.js"></script>
   <% end %>
 
   <%= render_asset("head.html", :user) %>
 
   <% with_asset("index.css", :adapter) do %>
-    <link rel="stylesheet" type="text/css" href="blade_runner/adapter.css">
+    <link rel="stylesheet" type="text/css" href="blade/adapter.css">
   <% end %>
 
   <% with_asset("index.js", :adapter) do %>
-    <script src="blade_runner/adapter.js"></script>
+    <script src="blade/adapter.js"></script>
   <% end %>
 
   <%= render_asset("head.html", :adapter) %>

@@ -1,13 +1,13 @@
-class BladeRunner::Session < BladeRunner::Model
+class Blade::Session < Blade::Model
   class << self
     def create(attributes)
       model = super
-      model.test_results = BladeRunner::TestResults.new(model.id)
+      model.test_results = Blade::TestResults.new(model.id)
       model
     end
 
     def combined_test_results
-      BladeRunner::CombinedTestResults.new(all)
+      Blade::CombinedTestResults.new(all)
     end
   end
 

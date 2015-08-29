@@ -1,19 +1,19 @@
 require "faye/websocket"
 require "useragent"
 
-module BladeRunner::Server
+module Blade::Server
   extend self
-  include BladeRunner::Component
+  include Blade::Component
 
-  WEBSOCKET_PATH = "/blade_runner/websocket"
+  WEBSOCKET_PATH = "/blade/websocket"
 
   def start
     Faye::WebSocket.load_adapter("thin")
-    Rack::Server.start(app: app, Port: BR.config.port, server: "thin")
+    Rack::Server.start(app: app, Port: Blade.config.port, server: "thin")
   end
 
   def websocket_url(path = "")
-    BR.url(WEBSOCKET_PATH + path)
+    Blade.url(WEBSOCKET_PATH + path)
   end
 
   def client
@@ -23,7 +23,7 @@ module BladeRunner::Server
   private
     def app
       Rack::Builder.app do
-        run BladeRunner::RackAdapter.new
+        run Blade::RackAdapter.new
       end
     end
 end

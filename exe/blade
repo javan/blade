@@ -1,10 +1,10 @@
 #!/usr/bin/env ruby
 
-require "blade_runner"
+require "blade"
 
 if ARGV.empty?
-  BladeRunner::CLI.new.console
+  Blade::CLI.new.console
 else
-  BladeRunner.initialize!
-  BladeRunner::CLI.start(ARGV)
+  Blade.initialize!
+  Blade::CLI.start(ARGV)
 end

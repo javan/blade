@@ -1,17 +1,17 @@
 # coding: utf-8
 lib = File.expand_path('../lib', __FILE__)
 $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
-require 'blade_runner/version'
+require 'blade/version'
 
 Gem::Specification.new do |spec|
-  spec.name          = "blade_runner"
-  spec.version       = BladeRunner::VERSION
+  spec.name          = "blade"
+  spec.version       = Blade::VERSION
   spec.authors       = ["Javan Makhmali"]
   spec.email         = ["javan@javan.us"]
 
-  spec.summary       = %q{Blade Runner}
-  spec.description   = %q{A Sprockets-friendly JavaScript test runner}
-  spec.homepage      = "https://github.com/javan/blade_runner"
+  spec.summary       = %q{Blade}
+  spec.description   = %q{Sprockets test runner and toolkit}
+  spec.homepage      = "https://github.com/javan/blade"
   spec.license       = "MIT"
 
   spec.files         = `git ls-files -z`.split("\x0").reject { |f| f.match(%r{^(test|spec|features)/}) }
@@ -22,7 +22,7 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency "bundler", "~> 1.10"
   spec.add_development_dependency "rake", "~> 10.0"
 
-  spec.add_dependency "blade_runner-qunit_adapter"
+  spec.add_dependency "blade-qunit_adapter"
   spec.add_dependency "activesupport", ">= 3.0.0"
   spec.add_dependency "coffee-script", "~> 2.4.0"
   spec.add_dependency "coffee-script-source", "~> 1.9.0"

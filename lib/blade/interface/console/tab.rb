@@ -1,10 +1,10 @@
-class BladeRunner::Console::Tab < BladeRunner::Model
+class Blade::Console::Tab < Blade::Model
   extend Forwardable
-  def_delegators "BladeRunner::Console", :colors, :create_window
+  def_delegators "Blade::Console", :colors, :create_window
 
   class << self
     extend Forwardable
-    def_delegators "BladeRunner::Console", :create_window
+    def_delegators "Blade::Console", :create_window
 
     attr_reader :window, :status_window, :content_window
 
@@ -101,7 +101,7 @@ class BladeRunner::Console::Tab < BladeRunner::Model
   end
 
   def session
-    BR::Session.find(id)
+    Blade::Session.find(id)
   end
 
   def status

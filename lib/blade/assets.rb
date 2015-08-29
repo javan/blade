@@ -1,13 +1,13 @@
 require "sprockets"
 
-module BladeRunner::Assets
+module Blade::Assets
   extend self
 
   @environments = {}
 
-  def environment(name = :blade_runner)
+  def environment(name = :blade)
     @environments[name] ||= Sprockets::Environment.new do |env|
-      env.cache = Sprockets::Cache::FileStore.new(BR.tmp_path.join(name.to_s))
+      env.cache = Sprockets::Cache::FileStore.new(Blade.tmp_path.join(name.to_s))
 
       send("#{name}_load_paths").each do |path|
         env.append_path(path)
@@ -15,7 +15,7 @@ module BladeRunner::Assets
 
       env.context_class.class_eval do
         extend Forwardable
-        def_delegators "BladeRunner::Assets", :environment, :logical_paths
+        def_delegators "Blade::Assets", :environment, :logical_paths
 
         def with_asset(path, env_name)
           if asset = environment(env_name)[path]
@@ -32,21 +32,21 @@ module BladeRunner::Assets
   end
 
   def logical_paths(type = nil)
-    paths = BR.config.logical_paths
+    paths = Blade.config.logical_paths
     paths.select! { |path| File.extname(path) == ".#{type}" } if type
     paths
   end
 
-  def blade_runner_load_paths
-    [ BR.root_path.join("assets") ]
+  def blade_load_paths
+    [ Blade.root_path.join("assets") ]
   end
 
   def user_load_paths
-    BR.config.load_paths.map { |a| Pathname.new(a) }
+    Blade.config.load_paths.map { |a| Pathname.new(a) }
   end
 
   def adapter_load_paths
-    gem_name = "blade_runner-#{BR.config.framework}_adapter"
+    gem_name = "blade-#{Blade.config.framework}_adapter"
     [ gem_pathname(gem_name).join("assets") ]
   end
 
@@ -57,7 +57,7 @@ module BladeRunner::Assets
       mtimes = get_mtimes
       unless mtimes == @mtimes
         @mtimes = mtimes
-        BR.publish("/assets", changed: @mtimes)
+        Blade.publish("/assets", changed: @mtimes)
       end
     end
   end
@@ -65,7 +65,7 @@ module BladeRunner::Assets
   private
     def get_mtimes
       {}.tap do |mtimes|
-        BR.config.logical_paths.each do |path|
+        Blade.config.logical_paths.each do |path|
           mtimes[path] = get_mtime(path)
         end
       end
