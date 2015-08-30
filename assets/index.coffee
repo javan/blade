@@ -28,8 +28,8 @@ if session_id?
   , 1000
 
 @Blade =
-  suiteBegin: ({total}) ->
-    publish("/tests", event: "begin", data: {total})
+  suiteBegin: (details) ->
+    publish(channel: "/tests", event: "begin", data: details)
 
   testResult: ({name, pass, message}) ->
     result = pass
