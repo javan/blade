@@ -1,5 +1,5 @@
 class Blade::TestResults
-  attr_reader :session_id, :status, :lines, :passes, :failures
+  attr_reader :session_id, :status, :lines, :passes, :failures, :total
 
   def initialize(session_id)
     @session_id = session_id
@@ -16,9 +16,8 @@ class Blade::TestResults
     @lines = []
     @passes = []
     @failures = []
-    @completed = false
     @status = "pending"
-    @total = nil
+    @total = 0
   end
 
   def process_test_result(details)
@@ -47,19 +46,11 @@ class Blade::TestResults
       publication.merge!(line: line, pass: pass)
     when "end"
       @status = failures.any? ? "failed" : "finished"
-      @completed = true
+      publication[:completed] = true
     end
 
-    publication.merge!(status: status, session_id: session_id, completed: @completed)
+    publication.merge!(status: status, session_id: session_id)
     Blade.publish("/results", publication)
-  end
-
-  def total
-    if @total
-      @total
-    elsif @completed
-      passes.size + failures.size
-    end
   end
 
   def to_s
