@@ -22,7 +22,7 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency "bundler", "~> 1.10"
   spec.add_development_dependency "rake", "~> 10.0"
 
-  spec.add_dependency "blade-qunit_adapter"
+  spec.add_dependency "blade-qunit_adapter", "~> 0.3.0"
   spec.add_dependency "activesupport", ">= 3.0.0"
   spec.add_dependency "coffee-script", "~> 2.4.0"
   spec.add_dependency "coffee-script-source", "~> 1.9.0"
