@@ -13,8 +13,8 @@ module Blade::CI
 
   private
     def process_result(details)
-      if details.has_key?("pass")
-        log details["pass"] ? "." : "F"
+      if details.has_key?("status")
+        log details["status"] == "pass" ? "." : "F"
       end
 
       if details["completed"]

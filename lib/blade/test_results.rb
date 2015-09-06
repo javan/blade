@@ -30,10 +30,9 @@ class Blade::TestResults
       @total = details["total"]
       @lines << publication[:line] = "1..#{@total}"
     when "result"
-      pass = details["result"]
       args = details.values_at("name", "message")
 
-      if pass
+      if details["status"] == "pass"
         line = Pass.new(*args).to_s
         @passes << line
       else
@@ -43,7 +42,7 @@ class Blade::TestResults
       end
       @lines << line
 
-      publication.merge!(line: line, pass: pass)
+      publication.merge!(line: line, status: status)
     when "end"
       @status = failures.any? ? "failed" : "finished"
       publication[:completed] = true

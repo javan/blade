@@ -1,12 +1,15 @@
 @Blade =
-  suiteDidBegin: (details) ->
-    publish("/tests", event: "begin", total: details.total)
+  suiteDidBegin: ({total}) ->
+    event = "begin"
+    publish("/tests", {event, total})
 
-  testDidEnd: (details) ->
-    publish("/tests", event: "result", result: details.pass, name: details.name, message: details.message)
+  testDidEnd: ({name, status, message}) ->
+    event = "result"
+    publish("/tests", {event, name, status, message})
 
-  suiteDidEnd: (details) ->
-    publish("/tests", event: "end", total: details.total)
+  suiteDidEnd: ({total}) ->
+    event = "end"
+    publish("/tests", {event, total})
 
 publish = (channel, data = {}) ->
   client.publish(channel, copy(data, {session_id})) if session_id?
