@@ -9,6 +9,7 @@ module Blade::Server
 
   def start
     Faye::WebSocket.load_adapter("thin")
+    Thin::Logging.silent = true
     Thin::Server.start("localhost", Blade.config.port, app, signals: false)
   end
 
