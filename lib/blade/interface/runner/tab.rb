@@ -6,16 +6,16 @@ class Blade::Runner::Tab < Blade::Model
     extend Forwardable
     def_delegators "Blade::Runner", :create_window
 
-    attr_reader :window, :status_window, :content_window
+    attr_reader :window, :state_window, :content_window
 
     def install(options = {})
       top = options[:top]
       @window = create_window(top: top, height: 3)
 
       top = @window.begy + @window.maxy + 1
-      @status_window = create_window(top: top, height: 1)
+      @state_window = create_window(top: top, height: 1)
 
-      top = @status_window.begy + @status_window.maxy + 1
+      top = @state_window.begy + @state_window.maxy + 1
       @content_window = create_window(top: top)
       @content_window.scrollok(true)
     end
@@ -93,7 +93,7 @@ class Blade::Runner::Tab < Blade::Model
   end
 
   def dot
-    status == "pending" ? "○" : "●"
+    state == "pending" ? "○" : "●"
   end
 
   def index
@@ -104,8 +104,8 @@ class Blade::Runner::Tab < Blade::Model
     Blade::Session.find(id)
   end
 
-  def status
-    session.test_results.status
+  def state
+    session.test_results.state
   end
 
   def active?
@@ -122,8 +122,8 @@ class Blade::Runner::Tab < Blade::Model
     self.active = true
     draw
 
-    tabs.status_window.addstr(session.to_s)
-    tabs.status_window.noutrefresh
+    tabs.state_window.addstr(session.to_s)
+    tabs.state_window.noutrefresh
 
     tabs.content_window.addstr(session.test_results.to_s)
     tabs.content_window.noutrefresh
@@ -135,8 +135,8 @@ class Blade::Runner::Tab < Blade::Model
     self.active = false
     draw
 
-    tabs.status_window.clear
-    tabs.status_window.noutrefresh
+    tabs.state_window.clear
+    tabs.state_window.noutrefresh
 
     tabs.content_window.clear
     tabs.content_window.noutrefresh
@@ -163,7 +163,7 @@ class Blade::Runner::Tab < Blade::Model
   end
 
   def color
-    case status
+    case state
     when "running"  then colors.yellow
     when "finished" then colors.green
     when /fail/     then colors.red

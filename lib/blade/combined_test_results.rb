@@ -24,7 +24,7 @@ class Blade::CombinedTestResults
   end
 
   def failed?
-    statuses.include?("failed")
+    states.include?("failed")
   end
 
   private
@@ -36,7 +36,7 @@ class Blade::CombinedTestResults
       all_test_results.map(&:total).compact
     end
 
-    def statuses
-      all_test_results.map(&:status)
+    def states
+      all_test_results.map(&:state)
     end
 end
