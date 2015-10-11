@@ -9,7 +9,7 @@ module Blade::Server
 
   def start
     Faye::WebSocket.load_adapter("thin")
-    Rack::Server.start(app: app, Port: Blade.config.port, server: "thin")
+    Thin::Server.start("localhost", Blade.config.port, app, signals: false)
   end
 
   def websocket_url(path = "")
