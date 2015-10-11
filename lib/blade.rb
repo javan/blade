@@ -83,13 +83,13 @@ module Blade
 
   private
     def handle_exit
-      %w( INT ).each do |signal|
-        trap(signal) { stop }
-      end
-
       at_exit do
         stop
         exit $!.status if $!.is_a?(SystemExit)
+      end
+
+      %w( INT ).each do |signal|
+        trap(signal) { exit(1) }
       end
     end
 
