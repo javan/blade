@@ -5,20 +5,24 @@ module Blade::Assets
 
   @environments = {}
 
-  def environment(name = :blade)
-    @environments[name] ||= Sprockets::Environment.new do |env|
-      env.cache = Sprockets::Cache::FileStore.new(Blade.tmp_path.join(name.to_s))
+  def environment(name = :blade, context_name = nil)
+    cache_name = [name, context_name].compact.map(&:to_s).uniq.join("-")
+
+    @environments[cache_name] ||= Sprockets::Environment.new do |env|
+      env.cache = Sprockets::Cache::FileStore.new(Blade.tmp_path.join(cache_name))
 
       send("#{name}_load_paths").each do |path|
         env.append_path(path)
       end
 
       env.context_class.class_eval do
-        extend Forwardable
-        def_delegators "Blade::Assets", :environment, :logical_paths
+        delegate :logical_paths, to: Blade::Assets
+
+        define_method(:environment) { env }
+        define_method(:context_name) { name }
 
         def with_asset(path, env_name)
-          if asset = environment(env_name)[path]
+          if asset = Blade::Assets.environment(env_name, context_name)[path]
             depend_on(asset.pathname)
             yield(asset)
           end
