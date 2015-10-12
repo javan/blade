@@ -1,6 +1,8 @@
 require "sprockets"
 
 module Blade::Assets
+  autoload :Builder, "blade/assets/builder"
+
   extend self
 
   @environments = {}
@@ -32,6 +34,12 @@ module Blade::Assets
           with_asset(path, env_name) { |asset| asset.to_s }
         end
       end
+    end
+  end
+
+  def build(name = :user)
+    if Blade.config.build
+      Builder.new(environment(name)).build
     end
   end
 

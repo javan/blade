@@ -120,6 +120,12 @@ module Blade
       options[:load_paths] = Array(options[:load_paths])
       options[:logical_paths] = Array(options[:logical_paths])
 
+      if build_options = options.delete(:build)
+        build_options[:logical_paths] = Array(build_options[:logical_paths])
+        build_options[:path] ||= "."
+        options[:build] = OpenStruct.new(build_options)
+      end
+
       @config = OpenStruct.new(options)
 
       setup_plugin_config!

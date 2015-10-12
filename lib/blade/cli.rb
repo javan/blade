@@ -10,4 +10,10 @@ class Blade::CLI < Thor
   def ci
     Blade.start(interface: :ci)
   end
+
+  desc "build", "Build assets"
+  def build
+    Blade.initialize!
+    Blade::Assets.build
+  end
 end
