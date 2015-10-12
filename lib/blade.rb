@@ -63,6 +63,9 @@ module Blade
   end
 
   def initialize!(options = {})
+    return if @initialized
+    @initialized = true
+
     @options ||= {}.with_indifferent_access
     @options.merge! options
 
