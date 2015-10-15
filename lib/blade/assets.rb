@@ -30,7 +30,7 @@ module Blade::Assets
           end
         end
 
-        def render_asset(path, env_name)
+        def render_asset(path, env_name = context_name)
           with_asset(path, env_name) { |asset| asset.to_s }
         end
       end
