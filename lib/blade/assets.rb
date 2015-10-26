@@ -54,7 +54,15 @@ module Blade::Assets
   end
 
   def user_load_paths
-    Blade.config.load_paths.map { |a| Pathname.new(a) }
+    Blade.config.load_paths.flat_map do |load_path|
+      if load_path.is_a?(Hash)
+        load_path.flat_map do |gem_name, paths|
+          Array(paths).map{ |path| gem_pathname(gem_name).join(path) }
+        end
+      else
+        Pathname.new(load_path)
+      end
+    end
   end
 
   def adapter_load_paths
