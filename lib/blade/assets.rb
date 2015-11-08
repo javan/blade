@@ -84,7 +84,7 @@ module Blade::Assets
     end
 
     def get_mtime(logical_path)
-      environment_for(:user)[logical_path].mtime
+      environment(:user)[logical_path].mtime
     rescue Exception => e
       e.to_s
     end
