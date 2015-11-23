@@ -71,7 +71,7 @@ module Blade
     load_adapter!
   end
 
-  def url(path = "")
+  def url(path = "/")
     "http://localhost:#{config.port}#{path}"
   end
 
