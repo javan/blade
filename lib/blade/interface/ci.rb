@@ -27,7 +27,9 @@ module Blade::CI
 
       if done?
         log "\n"
-        display_results_and_exit
+        EM.add_timer 2 do
+          display_results_and_exit
+        end
       end
     end
 
