@@ -24,6 +24,7 @@ module Blade::Server
   private
     def app
       Rack::Builder.app do
+        use Rack::ShowExceptions
         run Blade::RackAdapter.new
       end
     end
