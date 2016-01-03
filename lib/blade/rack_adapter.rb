@@ -38,7 +38,11 @@ class Blade::RackAdapter
     when "/"
       env["PATH_INFO"] = "index.html"
       response = environment(:blade).call(env)
-      response_with_session(response, env)
+      if Blade.running?
+        response_with_session(response, env)
+      else
+        response
+      end
     when @websocket_path_pattern
       bayeux.call(env)
     when @adapter_path_pattern
@@ -66,16 +70,20 @@ class Blade::RackAdapter
       [status, { Location: location }, []]
     end
 
+    SESSION_KEY = "blade_session"
+
     def response_with_session(response, env)
-      if Blade.running?
-        user_agent = UserAgent.parse(env["HTTP_USER_AGENT"])
+      request = Rack::Request.new(env)
+
+      if Blade::Session.find(request.cookies[SESSION_KEY])
+        response
+      else
+        user_agent = UserAgent.parse(request.user_agent)
         session = Blade::Session.create(user_agent: user_agent)
         status, headers, body = response
         response = Rack::Response.new(body, status, headers)
-        response.set_cookie("blade_session", session.id)
+        response.set_cookie(SESSION_KEY, session.id)
         response.finish
-      else
-        response
       end
     end
 end
