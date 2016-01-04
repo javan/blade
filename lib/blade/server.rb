@@ -21,6 +21,16 @@ module Blade::Server
     @client ||= Faye::Client.new(websocket_url)
   end
 
+  def subscribe(channel)
+    client.subscribe(channel) do |message|
+      yield message.with_indifferent_access
+    end
+  end
+
+  def publish(channel, message)
+    client.publish(channel, message)
+  end
+
   private
     def app
       Rack::Builder.app do

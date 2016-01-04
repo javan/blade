@@ -48,19 +48,14 @@ module Blade::Runner
     handle_stale_tabs
 
     Blade.subscribe("/results") do |details|
-      session = Blade::Session.find(details["session_id"])
+      session = Blade::Session.find(details[:session_id])
 
-      if tab = Tab.find(session.id)
-        if details["line"] && tab.active?
-          Tab.content_window.addstr(details["line"] + "\n")
-          Tab.content_window.noutrefresh
-        end
-        tab.draw
-      else
+      unless tab = Tab.find(session.id)
         tab = Tab.create(id: session.id)
         tab.activate if Tab.size == 1
       end
 
+      tab.draw
       Curses.doupdate
     end
   end

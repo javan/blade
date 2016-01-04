@@ -82,6 +82,7 @@ class Blade::Runner::Tab < Blade::Model
     window.attroff(color)
     window.addstr(" ║")
     window.addstr "╝   ╚"
+    draw_test_results
   end
 
   def draw_inactive
@@ -90,6 +91,28 @@ class Blade::Runner::Tab < Blade::Model
     window.addstr("  #{dot}\n")
     window.attroff(color)
     window.addstr "═════"
+  end
+
+  def draw_test_results
+    tabs.content_window.clear
+    failures = []
+
+    session.test_results.results.each do |result|
+      tabs.content_window.addstr(result[:status] == "pass" ? "." : "✗")
+      failures << result if result[:status] == "fail"
+    end
+
+    failures.each do |result|
+      tabs.content_window.addstr("\n\n")
+      tabs.content_window.attron(Curses::A_BOLD)
+      tabs.content_window.attron(colors.red)
+      tabs.content_window.addstr("✗ #{result[:name]}\n")
+      tabs.content_window.attroff(colors.red)
+      tabs.content_window.attroff(Curses::A_BOLD)
+      tabs.content_window.addstr(result[:message])
+    end
+
+    tabs.content_window.noutrefresh
   end
 
   def dot
@@ -124,9 +147,6 @@ class Blade::Runner::Tab < Blade::Model
 
     tabs.state_window.addstr(session.to_s)
     tabs.state_window.noutrefresh
-
-    tabs.content_window.addstr(session.test_results.to_s)
-    tabs.content_window.noutrefresh
   end
 
   def deactivate

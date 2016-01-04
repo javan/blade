@@ -28,8 +28,7 @@ module Blade
   autoload :TestResults, "blade/test_results"
   autoload :CombinedTestResults, "blade/combined_test_results"
 
-  extend Forwardable
-  def_delegators "Server.client", :subscribe, :publish
+  delegate :subscribe, :publish, to: Server
 
   DEFAULT_FRAMEWORK = :qunit
   DEFAULT_PORT = 9876
