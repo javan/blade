@@ -1,4 +1,6 @@
 class Blade::Session < Blade::Model
+  KEY = "blade_session"
+
   class << self
     def create(attributes)
       model = super

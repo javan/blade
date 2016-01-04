@@ -22,7 +22,8 @@ module Blade
 
   autoload :Model, "blade/model"
   autoload :Assets, "blade/assets"
-  autoload :RackAdapter, "blade/rack_adapter"
+  autoload :RackAdapter, "blade/rack/adapter"
+  autoload :RackRouter, "blade/rack/router"
   autoload :Session, "blade/session"
   autoload :TestResults, "blade/test_results"
   autoload :CombinedTestResults, "blade/combined_test_results"
