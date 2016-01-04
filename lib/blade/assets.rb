@@ -7,7 +7,7 @@ module Blade::Assets
 
   @environments = {}
 
-  def environment(name = :blade, context_name = nil)
+  def environment(name = :user, context_name = nil)
     cache_name = [name, context_name].compact.map(&:to_s).uniq.join("-")
 
     @environments[cache_name] ||= Sprockets::Environment.new do |env|
