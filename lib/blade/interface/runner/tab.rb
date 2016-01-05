@@ -98,7 +98,7 @@ class Blade::Runner::Tab < Blade::Model
     failures = []
 
     session.test_results.results.each do |result|
-      tabs.content_window.addstr(result[:status] == "pass" ? "." : "✗")
+      tabs.content_window.addstr(status_dot(result))
       failures << result if result[:status] == "fail"
     end
 
@@ -106,7 +106,7 @@ class Blade::Runner::Tab < Blade::Model
       tabs.content_window.addstr("\n\n")
       tabs.content_window.attron(Curses::A_BOLD)
       tabs.content_window.attron(colors.red)
-      tabs.content_window.addstr("✗ #{result[:name]}\n")
+      tabs.content_window.addstr("#{status_dot(result)} #{result[:name]}\n")
       tabs.content_window.attroff(colors.red)
       tabs.content_window.attroff(Curses::A_BOLD)
       tabs.content_window.addstr(result[:message])
@@ -117,6 +117,10 @@ class Blade::Runner::Tab < Blade::Model
 
   def dot
     state == "pending" ? "○" : "●"
+  end
+
+  def status_dot(result)
+    Blade::TestResults::STATUS_DOTS[result[:status]]
   end
 
   def index

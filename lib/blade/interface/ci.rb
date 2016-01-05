@@ -4,8 +4,8 @@ module Blade::CI
 
   def start
     @completed_sessions = 0
+    @failures = []
 
-    log "# Running"
     Blade.subscribe("/results") do |details|
       process_result(details)
     end
@@ -13,11 +13,15 @@ module Blade::CI
 
   private
     def process_result(details)
-      if details.has_key?("status")
-        log details["status"] == "pass" ? "." : "F"
+      if status = details[:status]
+        STDOUT.print status_dot(status)
+
+        if status == "fail"
+          @failures << details
+        end
       end
 
-      if details["completed"]
+      if details[:completed]
         process_completion
       end
     end
@@ -26,28 +30,30 @@ module Blade::CI
       @completed_sessions += 1
 
       if done?
-        log "\n"
         EM.add_timer 2 do
-          display_results_and_exit
+          display_failures
+          STDOUT.puts
+          exit_with_status_code
         end
       end
+    end
+
+    def status_dot(status)
+      Blade::TestResults::STATUS_DOTS[status]
     end
 
     def done?
       @completed_sessions == (Blade.config.expected_sessions || 1)
     end
 
-    def display_results_and_exit
-      results = Blade::Session.combined_test_results
-      display results
-      exit results.failed? ? 1 : 0
+    def display_failures
+      @failures.each do |details|
+        STDERR.puts "\n\n#{status_dot(details[:status])} #{details[:name]} (#{Blade::Session.find(details[:session_id])})"
+        STDERR.puts details[:message]
+      end
     end
 
-    def log(message)
-      STDERR.print message.to_s
-    end
-
-    def display(message)
-      STDOUT.puts message.to_s
+    def exit_with_status_code
+      exit @failures.any? ? 1 : 0
     end
 end

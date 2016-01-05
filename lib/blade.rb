@@ -26,7 +26,6 @@ module Blade
   autoload :RackRouter, "blade/rack/router"
   autoload :Session, "blade/session"
   autoload :TestResults, "blade/test_results"
-  autoload :CombinedTestResults, "blade/combined_test_results"
 
   delegate :subscribe, :publish, to: Server
 

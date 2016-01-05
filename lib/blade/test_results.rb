@@ -1,4 +1,6 @@
 class Blade::TestResults
+  STATUS_DOTS = { pass: ".", fail: "✗" }.with_indifferent_access
+
   attr_reader :session_id, :state, :results, :total, :failures
 
   def initialize(session_id)
