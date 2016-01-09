@@ -49,7 +49,7 @@ module Blade
     handle_exit
 
     EM.run do
-      @components.each { |c| c.start if c.respond_to?(:start) }
+      @components.each { |c| c.try(:start) }
       @running = true
     end
   end
@@ -57,7 +57,7 @@ module Blade
   def stop
     return if @stopping
     @stopping = true
-    @components.each { |c| c.stop if c.respond_to?(:stop) }
+    @components.each { |c| c.try(:stop) }
     EM.stop if EM.reactor_running?
     @running = false
   end

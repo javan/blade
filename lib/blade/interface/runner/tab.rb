@@ -1,10 +1,8 @@
 class Blade::Runner::Tab < Blade::Model
-  extend Forwardable
-  def_delegators "Blade::Runner", :colors, :create_window
+  delegate :colors, :create_window, to: Blade::Runner
 
   class << self
-    extend Forwardable
-    def_delegators "Blade::Runner", :create_window
+    delegate :create_window, to: Blade::Runner
 
     attr_reader :window, :state_window, :content_window
 

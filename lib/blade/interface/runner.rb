@@ -6,9 +6,6 @@ module Blade::Runner
 
   autoload :Tab, "blade/interface/runner/tab"
 
-  extend Forwardable
-  def_delegators "Blade::Runner", :create_window
-
   COLOR_NAMES = %w( white yellow green red )
   PADDING = 1
 
