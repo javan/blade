@@ -1,4 +1,4 @@
-require "blade/test_helper"
+require "test_helper"
 
 class BladeTest < Blade::TestCase
   test "initialize" do
