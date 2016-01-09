@@ -16,4 +16,11 @@ class Blade::CLI < Thor
     Blade.initialize!
     Blade::Assets.build
   end
+
+  desc "config", "Inspect Blade.config"
+  def config
+    require "pp"
+    Blade.initialize!
+    pp Blade.config
+  end
 end

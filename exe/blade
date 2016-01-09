@@ -1,10 +1,4 @@
 #!/usr/bin/env ruby
 
 require "blade"
-
-if ARGV.empty?
-  Blade::CLI.new.runner
-else
-  Blade.initialize!
-  Blade::CLI.start(ARGV)
-end
+Blade::CLI.start(ARGV)

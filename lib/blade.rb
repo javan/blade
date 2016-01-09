@@ -2,7 +2,6 @@ require "active_support/all"
 require "eventmachine"
 require "faye"
 require "pathname"
-require "ostruct"
 require "yaml"
 
 require "blade/version"
@@ -10,6 +9,14 @@ require "blade/cli"
 
 module Blade
   extend self
+
+  CONFIG_DEFAULTS = {
+    framework: :qunit,
+    port: 9876,
+    build: { path: "." }
+  }
+
+  CONFIG_FILENAMES = %w( blade.yml .blade.yml )
 
   @components = []
 
@@ -22,6 +29,7 @@ module Blade
 
   autoload :Model, "blade/model"
   autoload :Assets, "blade/assets"
+  autoload :Config, "blade/config"
   autoload :RackAdapter, "blade/rack/adapter"
   autoload :RackRouter, "blade/rack/router"
   autoload :Session, "blade/session"
@@ -29,17 +37,14 @@ module Blade
 
   delegate :subscribe, :publish, to: Server
 
-  DEFAULT_FRAMEWORK = :qunit
-  DEFAULT_PORT = 9876
-
-  attr_reader :config, :plugins
+  attr_reader :config
 
   def start(options = {})
     return if running?
     clean_tmp_path
 
     initialize!(options)
-    load_interface!
+    load_interface
 
     handle_exit
 
@@ -62,12 +67,24 @@ module Blade
   end
 
   def initialize!(options = {})
-    @options ||= {}.with_indifferent_access
-    @options.merge! options
+    return if @initialized
+    @initialized = true
 
-    setup_config!
-    load_plugins!
-    load_adapter!
+    options = CONFIG_DEFAULTS.deep_merge(blade_file_options).deep_merge(options)
+    @config = Blade::Config.new options
+
+    config.load_paths = Array(config.load_paths)
+    config.logical_paths = Array(config.logical_paths)
+
+    if config.build?
+      config.build.logical_paths = Array(config.build.logical_paths)
+      config.build.path ||= "."
+    end
+
+    config.plugins ||= {}
+
+    load_plugins
+    load_adapter
   end
 
   def url(path = "/")
@@ -99,57 +116,24 @@ module Blade
       end
     end
 
-    def load_config_file!
-      filename = ".blade.yml"
-      if File.exists?(filename)
-        @options.reverse_merge!(YAML.load_file(filename))
+    def blade_file_options
+      if filename = CONFIG_FILENAMES.detect { |name| File.exists?(name) }
+        YAML.load_file(filename)
+      else
+        {}
       end
     end
 
-    def setup_config!
-      load_config_file!
-      options = @options.except(:plugins)
-
-      if options_for_interface = @options[options[:interface]]
-        options.merge! options_for_interface
-      end
-
-      options[:framework] ||= DEFAULT_FRAMEWORK
-      options[:port] ||= DEFAULT_PORT
-      options[:load_paths] = Array(options[:load_paths])
-      options[:logical_paths] = Array(options[:logical_paths])
-
-      if build_options = options.delete(:build)
-        build_options[:logical_paths] = Array(build_options[:logical_paths])
-        build_options[:path] ||= "."
-        options[:build] = OpenStruct.new(build_options)
-      end
-
-      @config = OpenStruct.new(options)
-
-      setup_plugin_config!
-    end
-
-    def setup_plugin_config!
-      @plugins = OpenStruct.new
-
-      plugin_options = @options[:plugins] || {}
-
-      plugin_options.each do |name, plugin_config|
-        plugins[name] = OpenStruct.new(config: OpenStruct.new(plugin_config))
-      end
-    end
-
-    def load_interface!
+    def load_interface
       require "blade/interface/#{config.interface}"
     end
 
-    def load_adapter!
+    def load_adapter
       require "blade/#{config.framework}_adapter"
     end
 
-    def load_plugins!
-      plugins.to_h.keys.each do |name|
+    def load_plugins
+      config.plugins.keys.each do |name|
         require "blade/#{name}_plugin"
       end
     end
