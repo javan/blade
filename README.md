@@ -1,4 +1,5 @@
-# Blade: A [Sprockets](https://github.com/rails/sprockets) Toolkit for Building and Testing JavaScript Libraries
+# Blade
+### A [Sprockets](https://github.com/rails/sprockets) Toolkit for Building and Testing JavaScript Libraries
 
 ## Getting Started
 
