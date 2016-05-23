@@ -13,7 +13,7 @@ gem 'blade'
 
 Create a `.blade.yml` (or `blade.yml`) file in your project’s root, and define your Sprockets [load paths](https://github.com/rails/sprockets#the-load-path) and [logical paths](https://github.com/rails/sprockets#logical-paths). Example:
 
-```ruby
+```yaml
 # .blade.yml
 load_paths:
   - src
@@ -29,7 +29,7 @@ logical_paths:
 
 Configure your build paths and [compressors](https://github.com/rails/sprockets#minifying-assets):
 
-```ruby
+```yaml
 # .blade.yml
 …
 build:
