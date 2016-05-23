@@ -19,6 +19,8 @@ class Blade::Assets::Builder
     end
 
     def install
+      create_dist_path
+
       logical_paths.each do |logical_path|
         fingerprint_path = manifest.assets[logical_path]
         FileUtils.cp(compile_path.join(fingerprint_path), dist_path.join(logical_path))
@@ -36,6 +38,10 @@ class Blade::Assets::Builder
 
     def logical_paths
       Blade.config.build.logical_paths
+    end
+
+    def create_dist_path
+      dist_path.mkpath unless dist_path.exist?
     end
 
     def dist_path
