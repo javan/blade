@@ -45,10 +45,10 @@ class Blade::Assets::Builder
     end
 
     def dist_path
-      Pathname.new(Blade.config.build.path)
+      @dist_path ||= Pathname.new(Blade.config.build.path)
     end
 
     def compile_path
-      Blade.tmp_path.join("compile")
+      @compile_path ||= Blade.tmp_path.join("compile")
     end
 end
