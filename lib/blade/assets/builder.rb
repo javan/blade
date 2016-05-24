@@ -6,8 +6,12 @@ class Blade::Assets::Builder
   end
 
   def build
+    puts "Building assets…"
+
     clean
     compile
+    clean_dist_path
+    create_dist_path
     install
   end
 
@@ -19,11 +23,12 @@ class Blade::Assets::Builder
     end
 
     def install
-      create_dist_path
-
       logical_paths.each do |logical_path|
         fingerprint_path = manifest.assets[logical_path]
-        FileUtils.cp(compile_path.join(fingerprint_path), dist_path.join(logical_path))
+        source_path = compile_path.join(fingerprint_path)
+        destination_path = dist_path.join(logical_path)
+        FileUtils.cp(source_path, destination_path)
+        puts "[created] #{destination_path}"
       end
     end
 
@@ -42,6 +47,20 @@ class Blade::Assets::Builder
 
     def create_dist_path
       dist_path.mkpath unless dist_path.exist?
+    end
+
+    def clean_dist_path
+      if clean_dist_path?
+        children = dist_path.children
+        dist_path.rmtree
+        children.each do |child|
+          puts "[removed] #{child}"
+        end
+      end
+    end
+
+    def clean_dist_path?
+      Blade.config.build.clean && dist_path.exist?
     end
 
     def dist_path
