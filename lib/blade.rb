@@ -87,6 +87,11 @@ module Blade
     load_adapter
   end
 
+  def build
+    initialize!
+    Assets.build
+  end
+
   def url(path = "/")
     "http://localhost:#{config.port}#{path}"
   end

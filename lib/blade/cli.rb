@@ -13,8 +13,7 @@ class Blade::CLI < Thor
 
   desc "build", "Build assets"
   def build
-    Blade.initialize!
-    Blade::Assets.build
+    Blade.build
   end
 
   desc "config", "Inspect Blade.config"
