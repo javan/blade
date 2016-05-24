@@ -53,7 +53,7 @@ Run `bundle exec blade runner` to launch Blade’s test console and open the URL
 
 Run `bundle exec blade ci` to start Blade’s test console in non-interactive CI mode, and launch a browser pointed at Blade’s testing URL (usually http://localhost:9876). The process will return `0` on success and non-zero on failure.
 
-To test on multiple browsers with [Sauce Labs](https://saucelabs.com/), see the [Sauce Labs plugin](https://github.com/blade-sauce_labs_plugin).
+To test on multiple browsers with [Sauce Labs](https://saucelabs.com/), see the [Sauce Labs plugin](https://github.com/javan/blade-sauce_labs_plugin).
 
 ## Projects Using Blade
 
