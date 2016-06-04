@@ -31,7 +31,7 @@ Gem::Specification.new do |spec|
   spec.add_dependency "faye"
   spec.add_dependency "sprockets", ">= 3.0"
   spec.add_dependency "sprockets-export", "~> 0.9.1"
-  spec.add_dependency "thin", "~> 1.6.0"
+  spec.add_dependency "thin", ">= 1.6.0"
   spec.add_dependency "useragent", "~> 0.16.7"
   spec.add_dependency "thor", "~> 0.19.1"
 end
