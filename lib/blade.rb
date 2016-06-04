@@ -93,7 +93,7 @@ module Blade
   end
 
   def url(path = "/")
-    "http://localhost:#{config.port}#{path}"
+    "http://#{Server.host}:#{config.port}#{path}"
   end
 
   def root_path
