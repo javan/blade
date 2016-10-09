@@ -8,7 +8,7 @@ module Blade::Assets
 
   def environment
     @environment ||= Sprockets::Environment.new do |env|
-      env.cache = Sprockets::Cache::FileStore.new(Blade.tmp_path.join("sprockets"))
+      env.cache = Sprockets::Cache::FileStore.new(Blade.tmp_path)
 
       %w( blade user adapter ).each do |name|
         send("#{name}_load_paths").each do |path|
