@@ -41,7 +41,6 @@ module Blade
 
   def start(options = {})
     return if running?
-    clean_tmp_path
 
     initialize!(options)
     load_interface
