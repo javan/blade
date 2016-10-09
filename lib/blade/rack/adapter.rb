@@ -3,12 +3,8 @@ class Blade::RackAdapter
 
   route "", to: :redirect_to_index
   route "/", to: :index
-  route "/blade*", environment: :blade
-  route "/blade/adapter*", environment: :adapter
   route "/blade/websocket*", to: :websocket
-  default_route environment: :user
-
-  delegate :environment, to: Blade::Assets
+  default_route to: :environment
 
   attr_reader :request, :env
 
@@ -25,17 +21,12 @@ class Blade::RackAdapter
 
     rewrite_path!(base_path)
 
-    case
-    when action[:environment]
-      environment(action[:environment]).call(env)
-    when action[:to]
-      send(action[:to])
-    end
+    send(action[:to])
   end
 
   def index
-    request.path_info = "/index.html"
-    response = environment(:blade).call(env)
+    request.path_info = "/blade/index.html"
+    response = environment
     response = add_session_cookie(response) if needs_session_cookie?
     response.to_a
   end
@@ -50,6 +41,10 @@ class Blade::RackAdapter
 
   def websocket
     faye_adapter.call(env)
+  end
+
+  def environment
+    Blade::Assets.environment.call(env)
   end
 
   private

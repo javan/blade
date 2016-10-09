@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Blade Runner</title>
+  <script src="blade/websocket/client.js" data-websocket></script>
+  <script src="blade.js"></script>
+
+  <% if environment["head.html"] %>
+    <%= depend_on_asset("head.html").to_s %>
+  <% end %>
+
+  <link rel="stylesheet" type="text/css" href="blade/adapter.css">
+  <script src="blade/adapter.js"></script>
+
+  <% if environment["adapter/head.html"] %>
+    <%= depend_on_asset("blade/adapter/head.html").to_s %>
+  <% end %>
+
+  <% logical_paths(:js).each do |path| %>
+    <script src="<%= path %>"></script>
+  <% end %>
+</head>
+<body>
+  <% if environment["body.html"] %>
+    <%= depend_on_asset("body.html").to_s %>
+  <% end %>
+
+  <% if environment["blade/adapter/body.html"] %>
+    <%= depend_on_asset("blade/adapter/body.html").to_s %>
+  <% end %>
+</body>
+</html>

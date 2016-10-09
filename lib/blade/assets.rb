@@ -6,41 +6,25 @@ module Blade::Assets
 
   extend self
 
-  @environments = {}
+  def environment
+    @environment ||= Sprockets::Environment.new do |env|
+      env.cache = Sprockets::Cache::FileStore.new(Blade.tmp_path.join("sprockets"))
 
-  def environment(name = :user, context_name = nil)
-    cache_name = [name, context_name].compact.map(&:to_s).uniq.join("-")
-
-    @environments[cache_name] ||= Sprockets::Environment.new do |env|
-      env.cache = Sprockets::Cache::FileStore.new(Blade.tmp_path.join(cache_name))
-
-      send("#{name}_load_paths").each do |path|
-        env.append_path(path)
+      %w( blade user adapter ).each do |name|
+        send("#{name}_load_paths").each do |path|
+          env.append_path(path)
+        end
       end
 
       env.context_class.class_eval do
         delegate :logical_paths, to: Blade::Assets
-
-        define_method(:environment) { env }
-        define_method(:context_name) { name }
-
-        def with_asset(path, env_name)
-          if asset = Blade::Assets.environment(env_name, context_name)[path]
-            depend_on(asset.pathname)
-            yield(asset)
-          end
-        end
-
-        def render_asset(path, env_name = context_name)
-          with_asset(path, env_name) { |asset| asset.to_s }
-        end
       end
     end
   end
 
-  def build(name = :user)
+  def build
     if Blade.config.build
-      Builder.new(environment(name)).build
+      Builder.new(environment).build
     end
   end
 
@@ -93,7 +77,7 @@ module Blade::Assets
     end
 
     def get_mtime(logical_path)
-      environment(:user)[logical_path].mtime
+      environment[logical_path].mtime
     rescue Exception => e
       e.to_s
     end
