@@ -41,6 +41,7 @@ module Blade
 
   def start(options = {})
     return if running?
+    ensure_tmp_path
 
     initialize!(options)
     load_interface
@@ -103,9 +104,12 @@ module Blade
     Pathname.new(".").join("tmp/blade")
   end
 
+  def ensure_tmp_path
+    tmp_path.mkpath
+  end
+
   def clean_tmp_path
     tmp_path.rmtree if tmp_path.exist?
-    tmp_path.mkpath
   end
 
   private
