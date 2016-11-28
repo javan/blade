@@ -83,6 +83,7 @@ module Blade
 
     config.plugins ||= {}
 
+    load_requires
     load_plugins
     load_adapter
   end
@@ -138,6 +139,12 @@ module Blade
 
     def load_adapter
       require "blade/#{config.framework}_adapter"
+    end
+
+    def load_requires
+      Array(config.require).each do |path|
+        require path
+      end
     end
 
     def load_plugins
