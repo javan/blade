@@ -1,5 +1,4 @@
 require "sprockets"
-require "sprockets/export"
 
 module Blade::Assets
   autoload :Builder, "blade/assets/builder"
