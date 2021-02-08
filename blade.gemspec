@@ -19,14 +19,14 @@ Gem::Specification.new do |spec|
   spec.executables   = spec.files.grep(%r{^exe/}) { |f| File.basename(f) }
   spec.require_paths = ["lib"]
 
-  spec.add_development_dependency "bundler", "~> 1.10"
+  spec.add_development_dependency "bundler", "~> 2.0"
   spec.add_development_dependency "rake", "~> 10.0"
 
   spec.add_dependency "blade-qunit_adapter", "~> 2.0.1"
   spec.add_dependency "activesupport", ">= 3.0.0"
   spec.add_dependency "coffee-script"
   spec.add_dependency "coffee-script-source"
-  spec.add_dependency "curses", "~> 1.0.0"
+  spec.add_dependency "curses", ">= 1.4.0"
   spec.add_dependency "eventmachine"
   spec.add_dependency "faye"
   spec.add_dependency "sprockets", ">= 3.0"
