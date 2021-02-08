@@ -26,7 +26,7 @@ Gem::Specification.new do |spec|
   spec.add_dependency "activesupport", ">= 3.0.0"
   spec.add_dependency "coffee-script"
   spec.add_dependency "coffee-script-source"
-  spec.add_dependency "curses", "~> 1.4.0"
+  spec.add_dependency "curses", ">= 1.4.0"
   spec.add_dependency "eventmachine"
   spec.add_dependency "faye"
   spec.add_dependency "sprockets", ">= 3.0"
