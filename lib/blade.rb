@@ -126,7 +126,7 @@ module Blade
     end
 
     def blade_file_options
-      if filename = CONFIG_FILENAMES.detect { |name| File.exists?(name) }
+      if filename = CONFIG_FILENAMES.detect { |name| File.exist?(name) }
         YAML.load_file(filename)
       else
         {}
